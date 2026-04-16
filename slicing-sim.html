@@ -1,0 +1,352 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: sans-serif; background: #f7f7fb; padding: 1.25rem; }
+  .btn-row { display: flex; gap: 8px; margin-bottom: .75rem; flex-wrap: wrap; align-items: center; }
+  button { font-size: 13px; padding: 6px 16px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #222; cursor: pointer; }
+  button:hover { background: #f0f0f0; }
+  button.primary { background: #185FA5; color: #fff; border-color: #185FA5; }
+  button.primary:hover { background: #0C447C; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  select { font-size: 13px; padding: 4px 10px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #222; }
+  .progress-bar { height: 4px; background: #E6F1FB; border-radius: 2px; margin-bottom: .75rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: #185FA5; border-radius: 2px; transition: width 0.3s; }
+  .step-info { font-size: 13px; color: #0C447C; background: #E6F1FB; border: 1px solid #85B7EB; border-radius: 8px; padding: 9px 16px; margin-bottom: 1rem; min-height: 36px; text-align: center; line-height: 1.5; }
+
+  .sec { background: #fff; border-radius: 14px; border: 0.5px solid #e0e0e0; padding: 1rem 1.25rem; margin-bottom: .75rem; opacity: 0; transition: opacity 0.5s, border-color 0.3s; }
+  .sec.active { border-color: #185FA5; box-shadow: 0 0 0 3px #E6F1FB; }
+  .sec-label { font-size: 11px; font-weight: 700; color: #185FA5; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+
+  .builder-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; padding: 10px 14px; background: #f0f5ff; border-radius: 10px; border: 1px solid #c5d8f5; }
+  .builder-row label { font-size: 12px; color: #185FA5; font-weight: 600; }
+  .preset-btn { font-size: 11px; padding: 3px 10px; border-radius: 6px; border: 1px solid #85B7EB; background: #E6F1FB; color: #0C447C; cursor: pointer; }
+  .preset-btn:hover { background: #B5D4F4; }
+  .edit-col-hdrs { display: flex; gap: 4px; margin-left: 52px; margin-bottom: 3px; }
+  .edit-col-hdr  { width: 52px; text-align: center; font-size: 10px; color: #999; }
+  .edit-row { display: flex; align-items: center; gap: 4px; }
+  .edit-lbl { width: 46px; font-size: 10px; color: #999; text-align: right; padding-right: 6px; flex-shrink: 0; }
+  .edit-cell { width: 52px; height: 42px; border-radius: 8px; border: 2px solid #85B7EB; background: #E6F1FB; color: #0C447C; font-size: 13px; font-weight: 700; text-align: center; padding: 0; }
+  .edit-cell:focus { outline: none; border-color: #185FA5; background: #fff; }
+
+  .codebl { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 8px 4px; font-family: monospace; font-size: 12.5px; line-height: 1.85; overflow-x: auto; opacity: 0; transition: opacity 0.5s; margin-bottom: 10px; }
+  .codeline { padding: 2px 12px; border-radius: 3px; white-space: pre; color: #111; display: block; transition: background 0.3s; }
+  .codeline.hl { background: #FFF9C4; border-left: 3px solid #F9A825; padding-left: 9px; }
+  .cm  { color: #888; }
+  .out { color: #1B5E20; font-weight: 600; }
+  .err { color: #B71C1C; font-weight: 600; }
+  .idx { color: #185FA5; font-weight: 700; }
+
+  .arr-wrap { overflow-x: auto; margin-bottom: 10px; }
+  .arr-grid { display: inline-flex; flex-direction: column; gap: 3px; }
+  .arr-row  { display: flex; gap: 4px; align-items: center; }
+  .idx-chip { width: 58px; text-align: center; font-size: 10px; font-family: monospace; color: #bbb; padding: 1px 0; transition: color 0.3s, font-weight 0.3s; }
+  .idx-chip.hl-range { color: #0C447C; font-weight: 700; }
+
+  .cell { width: 58px; height: 52px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; border: 2px solid; transition: all 0.3s; }
+  .c-blue  { background: #E6F1FB; color: #0C447C; border-color: #378ADD; }
+  .c-rowhl { background: #FFF9C4; color: #7B6000; border-color: #F9A825; }
+  .c-hit   { background: #E8F5E9; color: #1B5E20; border-color: #43A047; }
+  .c-dim   { background: #f9f9f9; color: #bbb; border-color: #e0e0e0; }
+
+  .scan-pill { font-size: 13px; font-weight: 500; border-radius: 7px; padding: 5px 14px; display: inline-block; margin-bottom: 8px; opacity: 0; transition: opacity 0.3s; min-height: 28px; }
+  .sp-hl { background: #FFF9C4; color: #7B6000; border: 1px solid #F9A825; }
+  .sp-ok { background: #E8F5E9; color: #1B5E20; border: 1px solid #81C784; }
+
+  .rcards { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .rcard { border-radius: 10px; padding: 10px 14px; border: 2px solid; opacity: 0; transition: opacity 0.5s; }
+  .rcard.show { opacity: 1; }
+  .rc-ok  { background: #E8F5E9; border-color: #43A047; }
+  .rc-ok  .rc-expr { color: #1B5E20; } .rc-ok  .rc-desc { color: #2E7D32; }
+  .rc-err { background: #FFEBEE; border-color: #E53935; }
+  .rc-err .rc-expr { color: #B71C1C; } .rc-err .rc-desc { color: #C62828; }
+  .rc-hl  { background: #FFF9C4; border-color: #F9A825; }
+  .rc-hl  .rc-expr { color: #7B6000; } .rc-hl  .rc-desc { color: #7B6000; }
+  .rc-expr { font-family: monospace; font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .rc-desc { font-size: 12px; line-height: 1.5; }
+</style>
+
+<h2 style="font-size:16px;font-weight:500;color:#111;margin-bottom:.75rem;">Slicing — grab a RANGE of marks</h2>
+
+<div class="btn-row">
+  <button class="primary" id="playBtn">▶ Play</button>
+  <button id="stepBtn">Step →</button>
+  <button id="resetBtn">↺ Reset</button>
+  <span style="font-size:12px;color:#888;">Speed:</span>
+  <select id="speedSel">
+    <option value="900">Slow</option>
+    <option value="500" selected>Normal</option>
+    <option value="180">Fast</option>
+  </select>
+  <span id="phaseLabel" style="font-size:12px;color:#aaa;margin-left:4px;"></span>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+<div class="step-info" id="stepInfo">Edit the array below, then press Play.</div>
+
+<!-- Sec 1 -->
+<div class="sec" id="sec1" style="opacity:1;">
+  <div class="sec-label">Step 1 — build your marks array</div>
+  <div class="builder-row">
+    <label>Presets:</label>
+    <button class="preset-btn" onclick="loadPreset('default')">Default (10 marks)</button>
+    <button class="preset-btn" onclick="loadPreset('short')">Short (6 marks)</button>
+    <button class="preset-btn" onclick="loadPreset('random')">Random</button>
+  </div>
+  <div style="overflow-x:auto;">
+    <div class="edit-col-hdrs" id="editColHdrs"></div>
+    <div style="margin-bottom:10px;"><div class="edit-row" id="editRow"></div></div>
+  </div>
+  <div class="codebl" id="cb1" style="opacity:1;">
+    <span class="codeline" id="cl1code">marks = np.array([45, 78, 23, 92, 67, 88, 34, 56, 91, 72])</span>
+    <span class="codeline"><span class="cm"># syntax: marks[start : stop : step]</span></span>
+  </div>
+</div>
+
+<!-- Sec 2 -->
+<div class="sec" id="sec2">
+  <div class="sec-label">Step 2 — marks[:stop] and marks[start:] — omit one end</div>
+  <div class="codebl" id="cb2">
+    <span class="codeline" id="cl2a"><span class="cm"># omit start → defaults to 0 | omit stop → defaults to end</span></span>
+    <span class="codeline" id="cl2b">marks[<span class="idx">:3</span>]    <span class="out">→  [45, 78, 23]</span>   <span class="cm"># first 3 elements</span></span>
+    <span class="codeline" id="cl2c">marks[<span class="idx">7:</span>]    <span class="out">→  [56, 91, 72]</span>   <span class="cm"># from index 7 to end</span></span>
+  </div>
+  <div class="scan-pill sp-ok" id="pill2">&nbsp;</div>
+  <div class="arr-wrap"><div id="arr2"></div></div>
+  <div class="rcards">
+    <div class="rcard rc-ok" id="rc21"><div class="rc-expr">marks[:3] = [45, 78, 23]</div><div class="rc-desc">First 3 marks — start defaults to 0.</div></div>
+    <div class="rcard rc-ok" id="rc22"><div class="rc-expr">marks[7:] = [56, 91, 72]</div><div class="rc-desc">Last 3 marks — stop defaults to end.</div></div>
+  </div>
+</div>
+
+<!-- Sec 3 -->
+<div class="sec" id="sec3">
+  <div class="sec-label">Step 3 — marks[start:stop] — middle range, stop is EXCLUDED</div>
+  <div class="codebl" id="cb3">
+    <span class="codeline" id="cl3a"><span class="cm"># marks[2:6] — indices 2, 3, 4, 5 (stop 6 excluded)</span></span>
+    <span class="codeline" id="cl3b">marks[<span class="idx">2:6</span>]   <span class="out">→  [23, 92, 67, 88]</span>   <span class="cm"># 4 elements</span></span>
+    <span class="codeline" id="cl3c"><span class="cm"># length = stop − start = 6 − 2 = 4</span></span>
+  </div>
+  <div class="scan-pill sp-ok" id="pill3">&nbsp;</div>
+  <div class="arr-wrap"><div id="arr3"></div></div>
+  <div class="rcards">
+    <div class="rcard rc-ok" id="rc31"><div class="rc-expr">marks[2:6] = [23, 92, 67, 88]</div><div class="rc-desc">Indices 2 to 5 — 4 elements.</div></div>
+    <div class="rcard rc-hl" id="rc32"><div class="rc-expr">Stop 6 is EXCLUDED — length = 6 − 2 = 4</div><div class="rc-desc">The slice ends just before stop. Always: stop − start = count.</div></div>
+  </div>
+</div>
+
+<!-- Sec 4 -->
+<div class="sec" id="sec4">
+  <div class="sec-label">Step 4 — marks[::step] — pick every step-th element</div>
+  <div class="codebl" id="cb4">
+    <span class="codeline" id="cl4a"><span class="cm"># marks[start:stop:step] — start/stop default to full range</span></span>
+    <span class="codeline" id="cl4b">marks[<span class="idx">::2</span>]    <span class="out">→  [45, 23, 67, 34, 91]</span>   <span class="cm"># every 2nd element</span></span>
+    <span class="codeline" id="cl4c">marks[<span class="idx">1::2</span>]   <span class="out">→  [78, 92, 88, 56, 72]</span>   <span class="cm"># alternate group</span></span>
+  </div>
+  <div class="scan-pill sp-ok" id="pill4">&nbsp;</div>
+  <div class="arr-wrap"><div id="arr4"></div></div>
+  <div class="rcards">
+    <div class="rcard rc-ok" id="rc41"><div class="rc-expr">marks[::2] = [45, 23, 67, 34, 91]</div><div class="rc-desc">Every 2nd element — 5 picks total.</div></div>
+    <div class="rcard rc-hl" id="rc42"><div class="rc-expr">marks[1::2] = [78, 92, 88, 56, 72]</div><div class="rc-desc">Shift start to 1 — picks the alternate group.</div></div>
+  </div>
+</div>
+
+<script>
+const PRESETS = {
+  default: [45,78,23,92,67,88,34,56,91,72],
+  short:   [10,25,37,48,62,51],
+};
+let DATA = [...PRESETS.default];
+
+function loadPreset(name){
+  if(name==='random') DATA=Array.from({length:8},()=>Math.floor(Math.random()*90)+10);
+  else DATA=[...PRESETS[name]];
+  buildEditGrid(); updateCode1(); reset();
+}
+
+function buildEditGrid(){
+  const n=DATA.length;
+  const hdrs=document.getElementById('editColHdrs'); hdrs.innerHTML='';
+  for(let i=0;i<n;i++){const h=document.createElement('div');h.className='edit-col-hdr';h.textContent=`[${i}]`;hdrs.appendChild(h);}
+  const row=document.getElementById('editRow'); row.innerHTML='';
+  const lbl=document.createElement('div'); lbl.className='edit-lbl'; lbl.textContent='marks'; row.appendChild(lbl);
+  for(let i=0;i<n;i++){
+    const inp=document.createElement('input');
+    inp.className='edit-cell'; inp.type='number'; inp.id=`ec${i}`; inp.value=DATA[i];
+    inp.addEventListener('input',()=>{DATA[i]=parseInt(inp.value)||0;updateCode1();});
+    row.appendChild(inp);
+  }
+}
+
+function updateCode1(){document.getElementById('cl1code').textContent=`marks = np.array([${DATA.join(', ')}])`;}
+
+function rng(a,b){return Array.from({length:b-a},(_,i)=>a+i);}
+function v2s(r){return '['+r.map(i=>DATA[i]).join(', ')+']';}
+
+function getP(){
+  const n=DATA.length;
+  const s1Stop=Math.min(3,n);
+  const s2Start=Math.max(n-3,0);
+  const s3Start=Math.min(2,n-1);
+  const s3Stop=Math.min(s3Start+4,n);
+  const s4R=Array.from({length:Math.ceil(n/2)},(_,i)=>i*2).filter(i=>i<n);
+  const s4Alt=DATA.filter((_,i)=>i%2===1);
+  return {n,s1Stop,s2Start,s3Start,s3Stop,
+    s1R:rng(0,s1Stop), s2R:rng(s2Start,n),
+    s3R:rng(s3Start,s3Stop), s4R, s4Alt};
+}
+
+function updateAllDynamic(){
+  const p=getP();
+  const {s1R,s2R,s3R,s4R,s4Alt,s1Stop,s2Start,s3Start,s3Stop,n}=p;
+  document.getElementById('cl2a').innerHTML=`<span class="cm"># omit start → defaults to 0 | omit stop → defaults to end</span>`;
+  document.getElementById('cl2b').innerHTML=`marks[<span class="idx">:${s1Stop}</span>]    <span class="out">→  ${v2s(s1R)}</span>   <span class="cm"># first ${s1Stop} elements</span>`;
+  document.getElementById('cl2c').innerHTML=`marks[<span class="idx">${s2Start}:</span>]    <span class="out">→  ${v2s(s2R)}</span>   <span class="cm"># from index ${s2Start} to end</span>`;
+  document.getElementById('cl3a').innerHTML=`<span class="cm"># marks[${s3Start}:${s3Stop}] — indices ${s3Start} to ${s3Stop-1} (stop ${s3Stop} excluded)</span>`;
+  document.getElementById('cl3b').innerHTML=`marks[<span class="idx">${s3Start}:${s3Stop}</span>]   <span class="out">→  ${v2s(s3R)}</span>   <span class="cm"># ${s3R.length} elements</span>`;
+  document.getElementById('cl3c').innerHTML=`<span class="cm"># length = stop − start = ${s3Stop} − ${s3Start} = ${s3R.length}</span>`;
+  document.getElementById('cl4a').innerHTML=`<span class="cm"># marks[start:stop:step] — start/stop default to full range</span>`;
+  document.getElementById('cl4b').innerHTML=`marks[<span class="idx">::2</span>]    <span class="out">→  ${v2s(s4R)}</span>   <span class="cm"># every 2nd element</span>`;
+  document.getElementById('cl4c').innerHTML=`marks[<span class="idx">1::2</span>]   <span class="out">→  [${s4Alt.join(', ')}]</span>   <span class="cm"># alternate group</span>`;
+  document.getElementById('rc21').innerHTML=`<div class="rc-expr">marks[:${s1Stop}] = ${v2s(s1R)}</div><div class="rc-desc">First ${s1Stop} elements — start defaults to 0.</div>`;
+  document.getElementById('rc22').innerHTML=`<div class="rc-expr">marks[${s2Start}:] = ${v2s(s2R)}</div><div class="rc-desc">Last ${s2R.length} elements — stop defaults to end.</div>`;
+  document.getElementById('rc31').innerHTML=`<div class="rc-expr">marks[${s3Start}:${s3Stop}] = ${v2s(s3R)}</div><div class="rc-desc">Indices ${s3Start} to ${s3Stop-1} — ${s3R.length} elements.</div>`;
+  document.getElementById('rc32').innerHTML=`<div class="rc-expr">Stop ${s3Stop} EXCLUDED — length = ${s3Stop}−${s3Start} = ${s3R.length}</div><div class="rc-desc">The slice ends just before stop. Always: stop − start = count.</div>`;
+  document.getElementById('rc41').innerHTML=`<div class="rc-expr">marks[::2] = ${v2s(s4R)}</div><div class="rc-desc">Every 2nd element — ${s4R.length} picks total.</div>`;
+  document.getElementById('rc42').innerHTML=`<div class="rc-expr">marks[1::2] = [${s4Alt.join(', ')}]</div><div class="rc-desc">Shift start to 1 — picks the alternate group.</div>`;
+}
+
+function makeArr(cid, pfx){
+  const n=DATA.length, cont=document.getElementById(cid); cont.innerHTML='';
+  const grid=document.createElement('div'); grid.className='arr-grid';
+  const cellRow=document.createElement('div'); cellRow.className='arr-row';
+  for(let i=0;i<n;i++){const c=document.createElement('div');c.className='cell c-blue';c.id=`${pfx}_c${i}`;c.textContent=DATA[i];cellRow.appendChild(c);}
+  grid.appendChild(cellRow);
+  const idxRow=document.createElement('div'); idxRow.className='arr-row';
+  for(let i=0;i<n;i++){const c=document.createElement('div');c.className='idx-chip';c.id=`${pfx}_pi${i}`;c.textContent=`[${i}]`;idxRow.appendChild(c);}
+  grid.appendChild(idxRow);
+  cont.appendChild(grid);
+}
+
+function gCell(pfx,i){return document.getElementById(`${pfx}_c${i}`);}
+function gLbl(pfx,i){return document.getElementById(`${pfx}_pi${i}`);}
+function resetCells(pfx){const n=DATA.length;for(let i=0;i<n;i++){const c=gCell(pfx,i);if(c)c.className='cell c-blue';const l=gLbl(pfx,i);if(l)l.classList.remove('hl-range');}}
+
+function buildSteps(){
+  const p=getP();
+  const {s1R,s2R,s3R,s4R,s1Stop,s2Start,s3Start,s3Stop}=p;
+  const sc=(pfx,i,line,info)=>({s:'sec'+pfx[1],t:'scanCell',pfx,i,line,info});
+  return [
+    {s:'sec1',t:'build',info:'Array ready. Press Step to start.'},
+    // Sec 2
+    {s:'sec2',t:'sec',info:'Step 2: marks[:stop] grabs from 0. marks[start:] grabs to the end.'},
+    {s:'sec2',t:'cb',id:'cb2',line:'cl2a',info:'Omit start → defaults to 0. Omit stop → goes to last element.'},
+    ...s1R.map((i,x)=>sc('a2',i,'cl2b',x===0?`marks[:${s1Stop}] — scanning indices 0 to ${s1Stop-1}...`:`Index ${i}: ${DATA[i]} — in range.`)),
+    {s:'sec2',t:'hitRange',pfx:'a2',range:s1R,pill:'pill2',pillText:`marks[:${s1Stop}] = ${v2s(s1R)}`,line:'cl2b',info:`marks[:${s1Stop}] = ${v2s(s1R)} — first ${s1Stop} elements ✓`},
+    {s:'sec2',t:'rcard',id:'rc21',info:`marks[:${s1Stop}] confirmed — first ${s1Stop} marks.`},
+    {s:'sec2',t:'resetArr',pfx:'a2',pill:'pill2',line:'cl2c',info:`marks[${s2Start}:] — scanning from index ${s2Start} to end.`},
+    ...s2R.map((i,x)=>sc('a2',i,'cl2c',x===0?`marks[${s2Start}:] — scanning from index ${s2Start}...`:`Index ${i}: ${DATA[i]} — in range.`)),
+    {s:'sec2',t:'hitRange',pfx:'a2',range:s2R,pill:'pill2',pillText:`marks[${s2Start}:] = ${v2s(s2R)}`,line:'cl2c',info:`marks[${s2Start}:] = ${v2s(s2R)} — last ${s2R.length} elements ✓`},
+    {s:'sec2',t:'rcard',id:'rc22',info:`marks[${s2Start}:] confirmed — last ${s2R.length} marks.`},
+    // Sec 3
+    {s:'sec3',t:'sec',info:'Step 3: marks[start:stop] — middle range. Stop index is EXCLUDED.'},
+    {s:'sec3',t:'cb',id:'cb3',line:'cl3a',info:`marks[${s3Start}:${s3Stop}] — includes index ${s3Start}, excludes index ${s3Stop}.`},
+    ...s3R.map((i,x)=>sc('a3',i,'cl3b',x===0?`Start at index ${s3Start}: ${DATA[i]}`:x===s3R.length-1?`Index ${i}: ${DATA[i]} — stop BEFORE index ${s3Stop}.`:`Index ${i}: ${DATA[i]}`)),
+    {s:'sec3',t:'hitRange',pfx:'a3',range:s3R,pill:'pill3',pillText:`marks[${s3Start}:${s3Stop}] = ${v2s(s3R)}`,line:'cl3b',info:`marks[${s3Start}:${s3Stop}] = ${v2s(s3R)} — ${s3R.length} elements ✓`},
+    {s:'sec3',t:'rcard',id:'rc31',info:`marks[${s3Start}:${s3Stop}] confirmed — ${s3R.length} elements.`},
+    {s:'sec3',t:'rcard',id:'rc32',info:`Stop ${s3Stop} EXCLUDED — length = ${s3Stop}−${s3Start} = ${s3R.length}.`},
+    // Sec 4
+    {s:'sec4',t:'sec',info:'Step 4: marks[::step] — pick every step-th element.'},
+    {s:'sec4',t:'cb',id:'cb4',line:'cl4a',info:'marks[start:stop:step] — step controls the jump between picks.'},
+    ...s4R.map((i,x)=>sc('a4',i,'cl4b',x===0?'marks[::2] — start at 0, jump +2 each time.':`Jump +2 → index ${i}: ${DATA[i]}`)),
+    {s:'sec4',t:'hitRange',pfx:'a4',range:s4R,pill:'pill4',pillText:`marks[::2] = ${v2s(s4R)}`,line:'cl4b',info:`marks[::2] = ${v2s(s4R)} — ${s4R.length} picks ✓`},
+    {s:'sec4',t:'rcard',id:'rc41',info:`marks[::2] confirmed — every 2nd element.`},
+    {s:'sec4',t:'rcard',id:'rc42',info:`marks[1::2] picks the alternate group — [${DATA.filter((_,i)=>i%2===1).join(', ')}].`},
+  ];
+}
+
+let STEPS=[], current=-1, playing=false, playTimer=null, built={};
+
+function getSpeed(){return parseInt(document.getElementById('speedSel').value);}
+function setInfo(t){document.getElementById('stepInfo').textContent=t;}
+function setPhase(t){document.getElementById('phaseLabel').textContent=t;}
+function setPct(s){document.getElementById('progressFill').style.width=Math.round(((s+1)/STEPS.length)*100)+'%';}
+function showEl(id){const e=document.getElementById(id);if(e)e.style.opacity='1';}
+function clrHL(sid){document.querySelectorAll(`#${sid} .codeline`).forEach(e=>e.classList.remove('hl'));}
+function hlLine(id){const e=document.getElementById(id);if(e)e.classList.add('hl');}
+function activeSection(id){document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+function applyStep(s){
+  setPct(s);
+  const step=STEPS[s];
+  if(step.line){clrHL(step.s);hlLine(step.line);}
+
+  if(step.t==='build'){activeSection('sec1');setInfo(step.info);setPhase('Step 1');return;}
+  if(step.t==='sec'){
+    showEl(step.s);activeSection(step.s);
+    if(!built[step.s]){
+      if(step.s==='sec2') makeArr('arr2','a2');
+      if(step.s==='sec3') makeArr('arr3','a3');
+      if(step.s==='sec4') makeArr('arr4','a4');
+      built[step.s]=true;
+    }
+    setInfo(step.info);setPhase('Step '+step.s.replace('sec',''));return;
+  }
+  if(step.t==='cb'){showEl(step.id);setInfo(step.info);return;}
+  if(step.t==='line'){setInfo(step.info);return;}
+  if(step.t==='rcard'){const e=document.getElementById(step.id);if(e)e.classList.add('show');setInfo(step.info);return;}
+
+  if(step.t==='scanCell'){
+    const cell=document.getElementById(`${step.pfx}_c${step.i}`);
+    if(cell)cell.className='cell c-rowhl';
+    setInfo(step.info);return;
+  }
+  if(step.t==='hitRange'){
+    const n=DATA.length;
+    for(let i=0;i<n;i++){
+      const cell=document.getElementById(`${step.pfx}_c${i}`);
+      const lbl=document.getElementById(`${step.pfx}_pi${i}`);
+      if(step.range.includes(i)){
+        if(cell)cell.className='cell c-hit';
+        if(lbl)lbl.classList.add('hl-range');
+      }else{
+        if(cell)cell.className='cell c-dim';
+      }
+    }
+    const pill=document.getElementById(step.pill);
+    if(pill){pill.className='scan-pill sp-ok';pill.style.opacity='1';pill.textContent=step.pillText;}
+    setInfo(step.info);return;
+  }
+  if(step.t==='resetArr'){
+    resetCells(step.pfx);
+    const pill=document.getElementById(step.pill);if(pill)pill.style.opacity='0';
+    setInfo(step.info);return;
+  }
+}
+
+function initSim(){STEPS=buildSteps();updateAllDynamic();}
+
+function stepForward(){if(current>=STEPS.length-1)return;current++;applyStep(current);document.getElementById('stepBtn').disabled=current>=STEPS.length-1;}
+function startPlay(){if(current>=STEPS.length-1)reset();playing=true;document.getElementById('playBtn').textContent='⏸ Pause';document.getElementById('stepBtn').disabled=true;tick();}
+function tick(){if(!playing)return;if(current>=STEPS.length-1){stopPlay();return;}stepForward();playTimer=setTimeout(tick,getSpeed());}
+function stopPlay(){playing=false;clearTimeout(playTimer);document.getElementById('playBtn').textContent='▶ Play';document.getElementById('stepBtn').disabled=current>=STEPS.length-1;}
+
+function reset(){
+  stopPlay();current=-1;built={};initSim();
+  ['sec2','sec3','sec4'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.opacity='0';e.classList.remove('active');}});
+  document.getElementById('sec1').classList.remove('active');
+  ['cb2','cb3','cb4'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.opacity='0';});
+  ['rc21','rc22','rc31','rc32','rc41','rc42'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('show');});
+  ['pill2','pill3','pill4'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.opacity='0';e.textContent='';}});
+  ['arr2','arr3','arr4'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='';});
+  document.querySelectorAll('.codeline').forEach(e=>e.classList.remove('hl'));
+  document.getElementById('progressFill').style.width='0%';
+  document.getElementById('phaseLabel').textContent='';
+  document.getElementById('stepInfo').textContent='Edit the array below, then press Play.';
+  document.getElementById('stepBtn').disabled=false;
+  document.getElementById('playBtn').textContent='▶ Play';
+}
+
+document.getElementById('playBtn').addEventListener('click',()=>{if(playing)stopPlay();else startPlay();});
+document.getElementById('stepBtn').addEventListener('click',stepForward);
+document.getElementById('resetBtn').addEventListener('click',reset);
+
+buildEditGrid();updateCode1();reset();
+</script>
