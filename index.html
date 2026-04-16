@@ -3,66 +3,82 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DAV - 1</title>
+  <title>DAV - 1 | NumPy</title>
 
   <style>
-    body {
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
       font-family: Arial, sans-serif;
+    }
+
+    body {
       background: #0f172a;
       color: white;
-      margin: 0;
       display: flex;
-      height: 100vh;
       align-items: center;
       justify-content: center;
+      min-height: 100vh;
     }
 
     .container {
       text-align: center;
+      width: 90%;
+      max-width: 900px;
     }
 
     h1 {
+      margin-bottom: 10px;
+      font-size: 2rem;
+    }
+
+    p {
       margin-bottom: 30px;
+      color: #94a3b8;
     }
 
     .links {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
     }
 
     a {
-      padding: 15px 25px;
+      display: block;
+      padding: 15px;
       background: #2563eb;
       color: white;
       text-decoration: none;
       border-radius: 10px;
-      transition: 0.2s;
+      transition: all 0.2s ease;
+      font-weight: 500;
     }
 
     a:hover {
       background: #1d4ed8;
-      transform: translateY(-2px);
+      transform: translateY(-3px);
     }
   </style>
 </head>
+
 <body>
   <div class="container">
-    <h1>DAV1 - Numpy</h1>
+    <h1>DAV 1 - NumPy</h1>
+    <p>Interactive simulations to understand NumPy concepts visually</p>
 
     <div class="links">
-      <a href="list_vs_numpy_interactive (1).html">list_vs_numpy_interactive</a>
-      <a href="arange">np.arange</a>
-      <a href="2d_array_simulation.html">2d_array_simulation</a>
-      <a href="dtype-conversion-sim.html">dtype-conversion</a>
-      <a href="indexing-1d-sim.html">indexing-1d-sim</a>
-      <a href="slicing-sim.html">slicing-1d</a>
-      <a href="reshape-sim.html">reshape</a>
-      <a href="transpose_simulation.html">transpose</a>
-      <a href="indexing_2d_v2.html">indexing_2d</a>
-      <a href="slicing_2d_simulation.html">slicing_2d</a>
+      <a href="list_vs_numpy_interactive.html">List vs NumPy</a>
+      <a href="arange.html">np.arange</a>
+      <a href="2d_array_simulation.html">2D Array</a>
+      <a href="dtype-conversion-sim.html">Data Type Conversion</a>
+      <a href="indexing-1d-sim.html">Indexing (1D)</a>
+      <a href="slicing-sim.html">Slicing (1D)</a>
+      <a href="reshape-sim.html">Reshape</a>
+      <a href="transpose_simulation.html">Transpose</a>
+      <a href="indexing_2d_v2.html">Indexing (2D)</a>
+      <a href="slicing_2d_simulation.html">Slicing (2D)</a>
     </div>
-
   </div>
 </body>
 </html>
