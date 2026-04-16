@@ -1,0 +1,364 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: sans-serif; background: #f7f7fb; padding: 1.25rem; }
+  .btn-row { display: flex; gap: 8px; margin-bottom: .75rem; flex-wrap: wrap; align-items: center; }
+  button { font-size: 13px; padding: 6px 16px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #222; cursor: pointer; }
+  button:hover { background: #f0f0f0; }
+  button.primary { background: #185FA5; color: #fff; border-color: #185FA5; }
+  button.primary:hover { background: #0C447C; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  select { font-size: 13px; padding: 4px 10px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #222; }
+  .progress-bar { height: 4px; background: #E6F1FB; border-radius: 2px; margin-bottom: .75rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: #185FA5; border-radius: 2px; transition: width 0.3s; }
+  .step-info { font-size: 13px; color: #0C447C; background: #E6F1FB; border: 1px solid #85B7EB; border-radius: 8px; padding: 9px 16px; margin-bottom: 1rem; min-height: 36px; text-align: center; line-height: 1.5; }
+
+  .sec { background: #fff; border-radius: 14px; border: 0.5px solid #e0e0e0; padding: 1rem 1.25rem; margin-bottom: .75rem; opacity: 0; transition: opacity 0.5s, border-color 0.3s; }
+  .sec.active { border-color: #185FA5; box-shadow: 0 0 0 3px #E6F1FB; }
+  .sec-label { font-size: 11px; font-weight: 700; color: #185FA5; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+
+  .builder-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; padding: 10px 14px; background: #f0f5ff; border-radius: 10px; border: 1px solid #c5d8f5; }
+  .builder-row label { font-size: 12px; color: #185FA5; font-weight: 600; }
+  .preset-btn { font-size: 11px; padding: 3px 10px; border-radius: 6px; border: 1px solid #85B7EB; background: #E6F1FB; color: #0C447C; cursor: pointer; }
+  .preset-btn:hover { background: #B5D4F4; }
+
+  .shape-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; padding: 8px 14px; background: #fafafa; border-radius: 8px; border: 0.5px solid #e8e8e8; }
+  .shape-row label { font-size: 12px; color: #555; font-weight: 600; min-width: 84px; }
+  .shape-inp { width: 52px; height: 36px; font-size: 15px; font-weight: 700; border-radius: 7px; border: 2px solid #85B7EB; background: #E6F1FB; color: #0C447C; text-align: center; padding: 0; }
+  .shape-inp:focus { outline: none; border-color: #185FA5; }
+  .val-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 5px; }
+  .val-ok  { background: #E8F5E9; color: #1B5E20; border: 1px solid #81C784; }
+  .val-err { background: #FFEBEE; color: #B71C1C; border: 1px solid #EF9A9A; }
+
+  .codebl { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 8px 4px; font-family: monospace; font-size: 12.5px; line-height: 1.85; overflow-x: auto; opacity: 0; transition: opacity 0.5s; margin-bottom: 10px; }
+  .codeline { padding: 2px 12px; border-radius: 3px; white-space: pre; color: #111; display: block; transition: background 0.3s; }
+  .codeline.hl { background: #FFF9C4; border-left: 3px solid #F9A825; padding-left: 9px; }
+  .cm  { color: #888; }
+  .out { color: #1B5E20; font-weight: 600; }
+  .err { color: #B71C1C; font-weight: 600; }
+  .idx { color: #185FA5; font-weight: 700; }
+
+  .arr-wrap { overflow-x: auto; margin-bottom: 8px; }
+  .arr-grid { display: inline-flex; flex-direction: column; gap: 4px; }
+  .arr-row  { display: flex; gap: 4px; }
+
+  .cell { width: 54px; height: 48px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; border: 2px solid; transition: all 0.35s; }
+  .c-blue  { background: #E6F1FB; color: #0C447C; border-color: #378ADD; }
+  .c-rowhl { background: #FFF9C4; color: #7B6000; border-color: #F9A825; }
+  .c-hit   { background: #E8F5E9; color: #1B5E20; border-color: #43A047; }
+  .c-dim   { background: #f9f9f9; color: #bbb; border-color: #e0e0e0; }
+
+  .shape-badge { display: inline-block; padding: 7px 16px; font-family: monospace; font-size: 13px; font-weight: 700; border-radius: 8px; border: 1.5px solid; margin-bottom: 10px; opacity: 0; transition: opacity 0.5s; }
+  .sb-blue  { background: #E6F1FB; color: #0C447C; border-color: #378ADD; }
+  .sb-green { background: #E8F5E9; color: #1B5E20; border-color: #43A047; }
+  .sb-yel   { background: #FFF9C4; color: #7B6000; border-color: #F9A825; }
+
+  .scan-pill { font-size: 13px; font-weight: 500; border-radius: 7px; padding: 5px 14px; display: inline-block; margin-bottom: 8px; opacity: 0; transition: opacity 0.3s; min-height: 28px; }
+  .sp-hl { background: #FFF9C4; color: #7B6000; border: 1px solid #F9A825; }
+  .sp-ok { background: #E8F5E9; color: #1B5E20; border: 1px solid #81C784; }
+
+  .rcards { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .rcard { border-radius: 10px; padding: 10px 14px; border: 2px solid; opacity: 0; transition: opacity 0.5s; }
+  .rcard.show { opacity: 1; }
+  .rc-ok  { background: #E8F5E9; border-color: #43A047; }
+  .rc-ok  .rc-expr { color: #1B5E20; } .rc-ok  .rc-desc { color: #2E7D32; }
+  .rc-err { background: #FFEBEE; border-color: #E53935; }
+  .rc-err .rc-expr { color: #B71C1C; } .rc-err .rc-desc { color: #C62828; }
+  .rc-hl  { background: #FFF9C4; border-color: #F9A825; }
+  .rc-hl  .rc-expr { color: #7B6000; } .rc-hl  .rc-desc { color: #7B6000; }
+  .rc-expr { font-family: monospace; font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .rc-desc { font-size: 12px; line-height: 1.5; }
+</style>
+
+<h2 style="font-size:16px;font-weight:500;color:#111;margin-bottom:.75rem;">2D Arrays — from 1D to 2D with reshape()</h2>
+
+<div class="btn-row">
+  <button class="primary" id="playBtn">▶ Play</button>
+  <button id="stepBtn">Step →</button>
+  <button id="resetBtn">↺ Reset</button>
+  <span style="font-size:12px;color:#888;">Speed:</span>
+  <select id="speedSel">
+    <option value="900">Slow</option>
+    <option value="500" selected>Normal</option>
+    <option value="180">Fast</option>
+  </select>
+  <span id="phaseLabel" style="font-size:12px;color:#aaa;margin-left:4px;"></span>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+<div class="step-info" id="stepInfo">Set reshape shapes, then press Play.</div>
+
+<!-- Sec 1 -->
+<div class="sec" id="sec1" style="opacity:1;">
+  <div class="sec-label" id="sl1">Step 1 — 1D array: 16 elements</div>
+  <div class="builder-row">
+    <label>Elements (n):</label>
+    <button class="preset-btn" onclick="loadPreset(12)">12</button>
+    <button class="preset-btn" onclick="loadPreset(16)">16</button>
+    <button class="preset-btn" onclick="loadPreset(24)">24</button>
+  </div>
+  <div class="shape-row">
+    <label>Reshape 1:</label>
+    <input class="shape-inp" id="r1Inp" type="number" value="4" min="1">
+    <span style="font-size:16px;font-weight:700;color:#555;">×</span>
+    <input class="shape-inp" id="c1Inp" type="number" value="4" min="1">
+    <span class="val-badge val-ok" id="v1Badge">4×4=16 ✓</span>
+  </div>
+  <div class="shape-row">
+    <label>Reshape 2:</label>
+    <input class="shape-inp" id="r2Inp" type="number" value="8" min="1">
+    <span style="font-size:16px;font-weight:700;color:#555;">×</span>
+    <input class="shape-inp" id="c2Inp" type="number" value="2" min="1">
+    <span class="val-badge val-ok" id="v2Badge">8×2=16 ✓</span>
+  </div>
+  <div class="arr-wrap" style="margin-top:10px;"><div id="arr1"></div></div>
+  <div class="shape-badge sb-blue" id="badge1" style="opacity:1;">shape = (16,) · ndim = 1</div>
+  <div class="codebl" id="cb1" style="opacity:1;">
+    <span class="codeline" id="cl1a">arr = np.arange(16)</span>
+    <span class="codeline" id="cl1b">arr.shape   <span class="out">→  (16,)</span>   <span class="cm"># 1D — single dimension, ndim = 1</span></span>
+  </div>
+</div>
+
+<!-- Sec 2 -->
+<div class="sec" id="sec2">
+  <div class="sec-label" id="sl2">Step 2 — arr.reshape(4, 4)</div>
+  <div class="codebl" id="cb2">
+    <span class="codeline" id="cl2a">arr2d = arr.reshape(<span class="idx">4, 4</span>)   <span class="cm"># 16 → 4 rows × 4 cols</span></span>
+    <span class="codeline" id="cl2b">arr2d.shape   <span class="out">→  (4, 4)</span>   ·   arr2d.ndim   <span class="out">→  2</span></span>
+  </div>
+  <div class="scan-pill sp-ok" id="pill2">&nbsp;</div>
+  <div class="arr-wrap"><div id="g2grid"></div></div>
+  <div class="shape-badge sb-green" id="badge2">shape = (4, 4) · ndim = 2</div>
+  <div class="rcards">
+    <div class="rcard rc-ok" id="rc21"><div class="rc-expr">arr.reshape(4, 4) ✓</div><div class="rc-desc">4×4 = 16 · shape = (4,4) · ndim = 2</div></div>
+  </div>
+</div>
+
+<!-- Sec 3 -->
+<div class="sec" id="sec3">
+  <div class="sec-label" id="sl3">Step 3 — arr.reshape(8, 2)</div>
+  <div class="codebl" id="cb3">
+    <span class="codeline" id="cl3a">arr3d = arr.reshape(<span class="idx">8, 2</span>)   <span class="cm"># same 16 elements, new shape</span></span>
+    <span class="codeline" id="cl3b">arr3d.shape   <span class="out">→  (8, 2)</span>   ·   arr3d.ndim   <span class="out">→  2</span></span>
+  </div>
+  <div class="scan-pill sp-ok" id="pill3">&nbsp;</div>
+  <div class="arr-wrap"><div id="g3grid"></div></div>
+  <div class="shape-badge sb-yel" id="badge3">shape = (8, 2) · ndim = 2</div>
+  <div class="rcards">
+    <div class="rcard rc-ok" id="rc31"><div class="rc-expr">arr.reshape(8, 2) ✓</div><div class="rc-desc">Same 16 elements, new arrangement · shape = (8,2)</div></div>
+  </div>
+</div>
+
+<!-- Sec 4 -->
+<div class="sec" id="sec4">
+  <div class="sec-label">Step 4 — rules: rows × cols must equal n</div>
+  <div class="codebl" id="cb4">
+    <span class="codeline" id="cl4a"><span class="cm"># constraint: rows × cols must equal total elements (n)</span></span>
+    <span class="codeline" id="cl4b">arr.reshape(<span class="idx">4, 4</span>)    <span class="out">→  ✓  (4×4 = 16)</span></span>
+    <span class="codeline" id="cl4c">arr.reshape(<span class="idx">3, 5</span>)    <span class="err">→  ✗  ValueError! (3×5 = 15 ≠ 16)</span></span>
+    <span class="codeline" id="cl4d">arr.reshape(<span class="idx">-1, 4</span>)   <span class="out">→  ✓  (-1 auto-computes = 4 rows)</span></span>
+  </div>
+  <div class="rcards">
+    <div class="rcard rc-ok"  id="rc41"><div class="rc-expr">reshape(r, c) ✓ when r × c = n</div><div class="rc-desc">4×4 = 8×2 = 16 — both are valid shapes.</div></div>
+    <div class="rcard rc-err" id="rc42"><div class="rc-expr">reshape(3, 5) → ValueError ✗</div><div class="rc-desc">3×5 = 15 ≠ 16. Product must exactly equal total elements.</div></div>
+    <div class="rcard rc-hl"  id="rc43"><div class="rc-expr">reshape(-1, 4) → shape (4, 4) ✓</div><div class="rc-desc">-1 is a wildcard — NumPy auto-computes the missing dimension.</div></div>
+  </div>
+</div>
+
+<script>
+let N=16, SHAPE1=[4,4], SHAPE2=[8,2];
+
+function loadPreset(n){
+  N=n;
+  if(n===12){SHAPE1=[3,4];SHAPE2=[6,2];}
+  if(n===16){SHAPE1=[4,4];SHAPE2=[8,2];}
+  if(n===24){SHAPE1=[4,6];SHAPE2=[8,3];}
+  document.getElementById('r1Inp').value=SHAPE1[0];
+  document.getElementById('c1Inp').value=SHAPE1[1];
+  document.getElementById('r2Inp').value=SHAPE2[0];
+  document.getElementById('c2Inp').value=SHAPE2[1];
+  validateShapes(); reset();
+}
+
+function validateShapes(){
+  const r1=parseInt(document.getElementById('r1Inp').value)||0;
+  const c1=parseInt(document.getElementById('c1Inp').value)||0;
+  const r2=parseInt(document.getElementById('r2Inp').value)||0;
+  const c2=parseInt(document.getElementById('c2Inp').value)||0;
+  const ok1=r1*c1===N, ok2=r2*c2===N;
+  const b1=document.getElementById('v1Badge'), b2=document.getElementById('v2Badge');
+  b1.textContent=`${r1}×${c1}=${r1*c1} ${ok1?'✓':'✗ (need '+N+')'}`;
+  b1.className=`val-badge ${ok1?'val-ok':'val-err'}`;
+  b2.textContent=`${r2}×${c2}=${r2*c2} ${ok2?'✓':'✗ (need '+N+')'}`;
+  b2.className=`val-badge ${ok2?'val-ok':'val-err'}`;
+  if(ok1)SHAPE1=[r1,c1];
+  if(ok2)SHAPE2=[r2,c2];
+  updateCode1();
+}
+
+['r1Inp','c1Inp','r2Inp','c2Inp'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',validateShapes);
+});
+
+function build1DDisplay(){
+  const cont=document.getElementById('arr1'); cont.innerHTML='';
+  const grid=document.createElement('div'); grid.className='arr-grid';
+  const row=document.createElement('div'); row.className='arr-row';
+  for(let i=0;i<N;i++){
+    const cell=document.createElement('div');
+    cell.className='cell c-blue'; cell.textContent=i; row.appendChild(cell);
+  }
+  grid.appendChild(row); cont.appendChild(grid);
+}
+
+function build2DGrid(cid,pfx,rows,cols){
+  const cont=document.getElementById(cid); cont.innerHTML='';
+  const grid=document.createElement('div'); grid.className='arr-grid';
+  for(let r=0;r<rows;r++){
+    const row=document.createElement('div'); row.className='arr-row';
+    for(let c=0;c<cols;c++){
+      const idx=r*cols+c;
+      const cell=document.createElement('div');
+      cell.className='cell c-blue'; cell.id=`${pfx}_c${idx}`;
+      cell.textContent=idx; cell.style.opacity='0'; row.appendChild(cell);
+    }
+    grid.appendChild(row);
+  }
+  cont.appendChild(grid);
+}
+
+function updateCode1(){
+  const [r1,c1]=SHAPE1,[r2,c2]=SHAPE2;
+  document.getElementById('sl1').textContent=`Step 1 — 1D array: ${N} elements`;
+  document.getElementById('cl1a').textContent=`arr = np.arange(${N})`;
+  document.getElementById('cl1b').innerHTML=`arr.shape   <span class="out">→  (${N},)</span>   <span class="cm"># 1D — ${N} elements, ndim = 1</span>`;
+  document.getElementById('badge1').textContent=`shape = (${N},) · ndim = 1`;
+}
+
+function updateAllDynamic(){
+  const [r1,c1]=SHAPE1,[r2,c2]=SHAPE2;
+  const ir=3,ic=5;
+  const autoR=N%c1===0?N/c1:'?';
+  document.getElementById('sl2').textContent=`Step 2 — arr.reshape(${r1}, ${c1})`;
+  document.getElementById('sl3').textContent=`Step 3 — arr.reshape(${r2}, ${c2})`;
+  document.getElementById('cl2a').innerHTML=`arr2d = arr.reshape(<span class="idx">${r1}, ${c1}</span>)   <span class="cm"># ${N} → ${r1} rows × ${c1} cols</span>`;
+  document.getElementById('cl2b').innerHTML=`arr2d.shape   <span class="out">→  (${r1}, ${c1})</span>   ·   arr2d.ndim   <span class="out">→  2</span>`;
+  document.getElementById('cl3a').innerHTML=`arr3d = arr.reshape(<span class="idx">${r2}, ${c2}</span>)   <span class="cm"># same ${N} elements, new shape</span>`;
+  document.getElementById('cl3b').innerHTML=`arr3d.shape   <span class="out">→  (${r2}, ${c2})</span>   ·   arr3d.ndim   <span class="out">→  2</span>`;
+  document.getElementById('cl4b').innerHTML=`arr.reshape(<span class="idx">${r1}, ${c1}</span>)    <span class="out">→  ✓  (${r1}×${c1} = ${N})</span>`;
+  document.getElementById('cl4c').innerHTML=`arr.reshape(<span class="idx">${ir}, ${ic}</span>)    <span class="err">→  ✗  ValueError! (${ir}×${ic} = ${ir*ic} ≠ ${N})</span>`;
+  document.getElementById('cl4d').innerHTML=`arr.reshape(<span class="idx">-1, ${c1}</span>)   <span class="out">→  ✓  (-1 auto = ${autoR} rows)</span>`;
+  document.getElementById('badge2').textContent=`shape = (${r1}, ${c1}) · ndim = 2`;
+  document.getElementById('badge3').textContent=`shape = (${r2}, ${c2}) · ndim = 2`;
+  document.getElementById('rc21').innerHTML=`<div class="rc-expr">arr.reshape(${r1}, ${c1}) ✓</div><div class="rc-desc">${r1}×${c1} = ${N} · shape = (${r1},${c1}) · ndim = 2</div>`;
+  document.getElementById('rc31').innerHTML=`<div class="rc-expr">arr.reshape(${r2}, ${c2}) ✓</div><div class="rc-desc">Same ${N} elements, new arrangement · shape = (${r2},${c2})</div>`;
+  document.getElementById('rc41').innerHTML=`<div class="rc-expr">reshape(r,c) ✓ when r×c = n</div><div class="rc-desc">${r1}×${c1} = ${r2}×${c2} = ${N} — both shapes are valid.</div>`;
+  document.getElementById('rc42').innerHTML=`<div class="rc-expr">reshape(${ir},${ic}) → ValueError ✗</div><div class="rc-desc">${ir}×${ic} = ${ir*ic} ≠ ${N}. Product must match total elements.</div>`;
+  document.getElementById('rc43').innerHTML=`<div class="rc-expr">reshape(-1, ${c1}) → shape (${autoR}, ${c1}) ✓</div><div class="rc-desc">-1 wildcard — NumPy computes ${N}÷${c1} = ${autoR} automatically.</div>`;
+}
+
+function buildSteps(){
+  const [r1,c1]=SHAPE1,[r2,c2]=SHAPE2;
+  return [
+    {s:'sec1',t:'build',info:`np.arange(${N}) — ${N} elements · shape (${N},) · ndim = 1`},
+    {s:'sec2',t:'sec',info:`Step 2: reshape(${r1},${c1}) — rearrange ${N} elements into ${r1} rows × ${c1} cols.`},
+    {s:'sec2',t:'cb',id:'cb2',line:'cl2a',info:`All ${N} elements are preserved — data is just rearranged in memory.`},
+    ...Array.from({length:r1},(_,r)=>({
+      s:'sec2',t:'showRow',pfx:'g2',row:r,cols:c1,finalClass:'c-hit',pill:'pill2',line:'cl2b',
+      info:`Row ${r}: elements [${r*c1}..${r*c1+c1-1}] → placed into row ${r} of ${r1}×${c1} grid.`
+    })),
+    {s:'sec2',t:'showBadge',id:'badge2',info:`Reshape done! shape = (${r1}, ${c1}) · ndim = 2`},
+    {s:'sec2',t:'rcard',id:'rc21',info:`arr.reshape(${r1},${c1}) — ${r1}×${c1}=${N} ✓`},
+    {s:'sec3',t:'sec',info:`Step 3: reshape(${r2},${c2}) — same ${N} elements, completely different arrangement.`},
+    {s:'sec3',t:'cb',id:'cb3',line:'cl3a',info:`${r1}×${c1} = ${r2}×${c2} = ${N} — the constraint always holds.`},
+    ...Array.from({length:r2},(_,r)=>({
+      s:'sec3',t:'showRow',pfx:'g3',row:r,cols:c2,finalClass:'c-rowhl',pill:'pill3',line:'cl3b',
+      info:`Row ${r}: elements [${r*c2}..${r*c2+c2-1}] → placed into row ${r} of ${r2}×${c2} grid.`
+    })),
+    {s:'sec3',t:'showBadge',id:'badge3',info:`Reshape done! shape = (${r2}, ${c2}) · ndim = 2`},
+    {s:'sec3',t:'rcard',id:'rc31',info:`arr.reshape(${r2},${c2}) — ${r2}×${c2}=${N} ✓`},
+    {s:'sec4',t:'sec',info:'Step 4: The golden rule — rows × cols must always equal total elements.'},
+    {s:'sec4',t:'cb',id:'cb4',line:'cl4a',info:'Rule: reshape(r, c) works only if r × c = n.'},
+    {s:'sec4',t:'line',line:'cl4b',info:`Valid — ${SHAPE1[0]}×${SHAPE1[1]} = ${N} ✓`},
+    {s:'sec4',t:'rcard',id:'rc41',info:`Both shapes valid: ${r1}×${c1} = ${r2}×${c2} = ${N}.`},
+    {s:'sec4',t:'line',line:'cl4c',info:`Invalid — 3×5 = 15 ≠ ${N} → ValueError!`},
+    {s:'sec4',t:'rcard',id:'rc42',info:`ValueError: cannot reshape array of ${N} into shape (3,5).`},
+    {s:'sec4',t:'line',line:'cl4d',info:`Wildcard -1: NumPy auto-computes ${N}÷${c1} = ${N/c1} rows.`},
+    {s:'sec4',t:'rcard',id:'rc43',info:`-1 wildcard: NumPy fills the missing dimension automatically.`},
+  ];
+}
+
+let STEPS=[], current=-1, playing=false, playTimer=null, built={};
+
+function getSpeed(){return parseInt(document.getElementById('speedSel').value);}
+function setInfo(t){document.getElementById('stepInfo').textContent=t;}
+function setPhase(t){document.getElementById('phaseLabel').textContent=t;}
+function setPct(s){document.getElementById('progressFill').style.width=Math.round(((s+1)/STEPS.length)*100)+'%';}
+function showEl(id){const e=document.getElementById(id);if(e)e.style.opacity='1';}
+function clrHL(sid){document.querySelectorAll(`#${sid} .codeline`).forEach(e=>e.classList.remove('hl'));}
+function hlLine(id){const e=document.getElementById(id);if(e)e.classList.add('hl');}
+function activeSection(id){document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+function applyStep(s){
+  setPct(s);
+  const step=STEPS[s];
+  if(step.line){clrHL(step.s);hlLine(step.line);}
+
+  if(step.t==='build'){activeSection('sec1');setInfo(step.info);setPhase('Step 1');return;}
+  if(step.t==='sec'){
+    showEl(step.s);activeSection(step.s);
+    if(!built[step.s]){
+      if(step.s==='sec2')build2DGrid('g2grid','g2',SHAPE1[0],SHAPE1[1]);
+      if(step.s==='sec3')build2DGrid('g3grid','g3',SHAPE2[0],SHAPE2[1]);
+      built[step.s]=true;
+    }
+    setInfo(step.info);setPhase('Step '+step.s.replace('sec',''));return;
+  }
+  if(step.t==='cb'){showEl(step.id);setInfo(step.info);return;}
+  if(step.t==='line'){setInfo(step.info);return;}
+  if(step.t==='rcard'){const e=document.getElementById(step.id);if(e)e.classList.add('show');setInfo(step.info);return;}
+  if(step.t==='showBadge'){const e=document.getElementById(step.id);if(e)e.style.opacity='1';setInfo(step.info);return;}
+
+  if(step.t==='showRow'){
+    const {row,cols,pfx,finalClass,pill}=step;
+    for(let c=0;c<cols;c++){
+      const cell=document.getElementById(`${pfx}_c${row*cols+c}`);
+      if(cell){cell.className=`cell ${finalClass}`;cell.style.opacity='1';}
+    }
+    const p=document.getElementById(pill);
+    if(p){
+      p.className='scan-pill sp-ok';p.style.opacity='1';
+      p.textContent=`Row ${row}: [${Array.from({length:cols},(_,c)=>row*cols+c).join(', ')}]`;
+    }
+    setInfo(step.info);return;
+  }
+}
+
+function initSim(){STEPS=buildSteps();updateAllDynamic();build1DDisplay();updateCode1();}
+
+function stepForward(){if(current>=STEPS.length-1)return;current++;applyStep(current);document.getElementById('stepBtn').disabled=current>=STEPS.length-1;}
+function startPlay(){if(current>=STEPS.length-1)reset();playing=true;document.getElementById('playBtn').textContent='⏸ Pause';document.getElementById('stepBtn').disabled=true;tick();}
+function tick(){if(!playing)return;if(current>=STEPS.length-1){stopPlay();return;}stepForward();playTimer=setTimeout(tick,getSpeed());}
+function stopPlay(){playing=false;clearTimeout(playTimer);document.getElementById('playBtn').textContent='▶ Play';document.getElementById('stepBtn').disabled=current>=STEPS.length-1;}
+
+function reset(){
+  stopPlay();current=-1;built={};initSim();
+  ['sec2','sec3','sec4'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.opacity='0';e.classList.remove('active');}});
+  document.getElementById('sec1').classList.remove('active');
+  ['cb2','cb3','cb4'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.opacity='0';});
+  ['rc21','rc31','rc41','rc42','rc43'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('show');});
+  ['pill2','pill3'].forEach(id=>{const e=document.getElementById(id);if(e){e.style.opacity='0';e.textContent='';}});
+  ['badge2','badge3'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.opacity='0';});
+  ['g2grid','g3grid'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='';});
+  document.querySelectorAll('.codeline').forEach(e=>e.classList.remove('hl'));
+  document.getElementById('progressFill').style.width='0%';
+  document.getElementById('phaseLabel').textContent='';
+  document.getElementById('stepInfo').textContent='Set reshape shapes, then press Play.';
+  document.getElementById('stepBtn').disabled=false;
+  document.getElementById('playBtn').textContent='▶ Play';
+}
+
+document.getElementById('playBtn').addEventListener('click',()=>{if(playing)stopPlay();else startPlay();});
+document.getElementById('stepBtn').addEventListener('click',stepForward);
+document.getElementById('resetBtn').addEventListener('click',reset);
+
+validateShapes();reset();
+</script>
