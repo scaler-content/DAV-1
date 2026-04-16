@@ -1,0 +1,343 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: sans-serif; background: #f7f7fb; padding: 1.25rem; }
+  .btn-row { display: flex; gap: 8px; margin-bottom: .75rem; flex-wrap: wrap; align-items: center; }
+  button { font-size: 13px; padding: 6px 16px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #222; cursor: pointer; }
+  button:hover { background: #f0f0f0; }
+  button.primary { background: #185FA5; color: #fff; border-color: #185FA5; }
+  button.primary:hover { background: #0C447C; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  select { font-size: 13px; padding: 4px 10px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #222; }
+  .progress-bar { height: 4px; background: #E6F1FB; border-radius: 2px; margin-bottom: .75rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: #185FA5; border-radius: 2px; transition: width 0.3s; }
+  .step-info { font-size: 13px; color: #0C447C; background: #E6F1FB; border: 1px solid #85B7EB; border-radius: 8px; padding: 9px 16px; margin-bottom: 1rem; min-height: 36px; text-align: center; line-height: 1.5; }
+
+  .sec { background: #fff; border-radius: 14px; border: 0.5px solid #e0e0e0; padding: 1rem 1.25rem; margin-bottom: .75rem; opacity: 0; transition: opacity 0.5s, border-color 0.3s; }
+  .sec.active { border-color: #185FA5; box-shadow: 0 0 0 3px #E6F1FB; }
+  .sec-label { font-size: 11px; font-weight: 700; color: #185FA5; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+
+  .builder-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; padding: 10px 14px; background: #f0f5ff; border-radius: 10px; border: 1px solid #c5d8f5; }
+  .builder-row label { font-size: 12px; color: #185FA5; font-weight: 600; }
+  .dim-sel { font-size: 13px; padding: 4px 10px; border-radius: 7px; border: 1.5px solid #85B7EB; color: #0C447C; font-weight: 600; background: #fff; width: 60px; }
+  .build-btn { font-size: 12px; padding: 5px 16px; border-radius: 7px; background: #185FA5; color: #fff; border: none; cursor: pointer; }
+  .build-btn:hover { background: #0C447C; }
+  .preset-btn { font-size: 11px; padding: 3px 10px; border-radius: 6px; border: 1px solid #85B7EB; background: #E6F1FB; color: #0C447C; cursor: pointer; }
+  .preset-btn:hover { background: #B5D4F4; }
+
+  .edit-grid { display: inline-flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+  .edit-row  { display: flex; align-items: center; gap: 5px; }
+  .edit-lbl  { width: 42px; font-size: 10px; color: #999; text-align: right; padding-right: 6px; }
+  .edit-cell { width: 54px; height: 48px; border-radius: 8px; border: 2px solid #85B7EB; background: #E6F1FB; color: #0C447C; font-size: 15px; font-weight: 700; text-align: center; cursor: pointer; }
+  .edit-cell:focus { outline: none; border-color: #185FA5; background: #fff; }
+  .edit-col-hdrs { display: flex; gap: 5px; margin-left: 48px; margin-bottom: 3px; }
+  .edit-col-hdr  { width: 54px; text-align: center; font-size: 10px; color: #999; font-weight: 500; }
+
+  /* CODE: white bg, black text */
+  .codebl { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 8px 4px; font-family: monospace; font-size: 12.5px; line-height: 1.85; overflow-x: auto; opacity: 0; transition: opacity 0.5s; margin-bottom: 10px; }
+  .codeline { padding: 2px 12px; border-radius: 3px; white-space: pre; color: #111; display: block; transition: background 0.3s; }
+  /* Highlight = yellow */
+  .codeline.hl { background: #FFF9C4; border-left: 3px solid #F9A825; padding-left: 9px; color: #111; }
+  .cm  { color: #888; }
+  .out { color: #1B5E20; font-weight: 600; }
+  .err { color: #B71C1C; font-weight: 600; }
+  .idx { color: #185FA5; font-weight: 700; }
+
+  .hdr-row  { display: flex; gap: 5px; margin-left: 48px; margin-bottom: 4px; }
+  .hdr-cell { width: 56px; text-align: center; font-size: 10px; color: #999; font-weight: 500; }
+  .data-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+  .row-label{ width: 42px; text-align: right; font-size: 10px; color: #999; font-weight: 500; padding-right: 6px; flex-shrink: 0; }
+  .cell { width: 56px; height: 52px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; border: 2px solid; transition: all 0.3s; }
+
+  /* Highlight = yellow, Correct = green, Error = red */
+  .c-blue   { background: #E6F1FB; color: #0C447C; border-color: #378ADD; }
+  .c-rowhl  { background: #FFF9C4; color: #7B6000; border-color: #F9A825; }
+  .c-hit    { background: #E8F5E9; color: #1B5E20; border-color: #43A047; transform: scale(1.12); }
+  .c-err    { background: #FFEBEE; color: #B71C1C; border-color: #E53935; transform: scale(1.12); }
+  .c-diag   { background: #FFF9C4; color: #7B6000; border-color: #F9A825; transform: scale(1.08); }
+  .c-dim    { background: #f9f9f9; color: #ccc; border-color: #eee; }
+
+  /* Scan pill */
+  .scan-pill { font-size: 13px; font-weight: 500; border-radius: 7px; padding: 5px 14px; display: inline-block; margin-bottom: 8px; opacity: 0; transition: opacity 0.3s; min-height: 28px; }
+  .sp-hl    { background: #FFF9C4; color: #7B6000; border: 1px solid #F9A825; }
+  .sp-ok    { background: #E8F5E9; color: #1B5E20; border: 1px solid #81C784; }
+
+  /* Result cards */
+  .rcard { border-radius: 10px; padding: 10px 14px; border: 2px solid; opacity: 0; transition: opacity 0.5s; margin-bottom: 8px; }
+  .rcard.show { opacity: 1; }
+  .rc-ok     { background: #E8F5E9; border-color: #43A047; }
+  .rc-ok     .rc-expr { color: #1B5E20; } .rc-ok  .rc-desc { color: #2E7D32; }
+  .rc-err    { background: #FFEBEE; border-color: #E53935; }
+  .rc-err    .rc-expr { color: #B71C1C; } .rc-err .rc-desc { color: #C62828; }
+  .rc-hl     { background: #FFF9C4; border-color: #F9A825; }
+  .rc-hl     .rc-expr { color: #7B6000; } .rc-hl  .rc-desc { color: #7B6000; }
+  .rc-expr { font-family: monospace; font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .rc-desc { font-size: 12px; line-height: 1.5; }
+</style>
+
+<h2 style="font-size:16px;font-weight:500;color:#111;margin-bottom:.75rem;">Indexing in 2D arrays — accessing specific elements</h2>
+
+<div class="btn-row">
+  <button class="primary" id="playBtn">▶ Play</button>
+  <button id="stepBtn">Step →</button>
+  <button id="resetBtn">↺ Reset</button>
+  <span style="font-size:12px;color:#888;">Speed:</span>
+  <select id="speedSel">
+    <option value="900">Slow</option>
+    <option value="500" selected>Normal</option>
+    <option value="180">Fast</option>
+  </select>
+  <span id="phaseLabel" style="font-size:12px;color:#aaa;margin-left:4px;"></span>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+<div class="step-info" id="stepInfo">Edit the array below, then press Play.</div>
+
+<!-- Sec 1 -->
+<div class="sec" id="sec1" style="opacity:1;">
+  <div class="sec-label">Step 1 — build your array</div>
+  <div class="builder-row">
+    <label>Rows:</label>
+    <select class="dim-sel" id="selRows"><option>2</option><option selected>3</option><option>4</option><option>5</option></select>
+    <label>Cols:</label>
+    <select class="dim-sel" id="selCols"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select>
+    <button class="build-btn" id="applyDims">Resize</button>
+    <button class="preset-btn" onclick="loadPreset('default')">Default (3×4)</button>
+    <button class="preset-btn" onclick="loadPreset('square')">Square (3×3)</button>
+    <button class="preset-btn" onclick="loadPreset('custom')">Random</button>
+  </div>
+  <div class="edit-col-hdrs" id="editColHdrs"></div>
+  <div class="edit-grid" id="editGrid"></div>
+  <div class="codebl" id="cb1" style="opacity:1;">
+    <span class="codeline" id="cl1code">m1 = np.array([[0,1,2,3],[4,5,6,7],[8,9,10,11]])</span>
+    <span class="codeline"><span class="cm"># access: m1[row, col] — row first, column second</span></span>
+  </div>
+</div>
+
+<!-- Sec 2 -->
+<div class="sec" id="sec2">
+  <div class="sec-label">Step 2 — basic indexing: pick one element</div>
+  <div class="codebl" id="cb2">
+    <span class="codeline" id="cl2a">m1[<span class="idx" id="idx2a">1, 2</span>]   <span class="out" id="out2a">→  6</span>   <span class="cm"># row 1, col 2</span></span>
+    <span class="codeline" id="cl2b">m1[<span class="idx" id="idx2b">2, 0</span>]   <span class="out" id="out2b">→  8</span>   <span class="cm"># row 2, col 0</span></span>
+  </div>
+  <div class="scan-pill sp-hl" id="pill2">&nbsp;</div>
+  <div class="hdr-row" id="hdr2"></div>
+  <div id="grid2"></div>
+  <div style="margin-top:10px;">
+    <div class="rcard rc-ok" id="rc21"><div class="rc-expr" id="rc21expr">m1[1, 2] = 6</div><div class="rc-desc" id="rc21desc">Row 1 → Column 2 → value is 6</div></div>
+    <div class="rcard rc-ok" id="rc22"><div class="rc-expr" id="rc22expr">m1[2, 0] = 8</div><div class="rc-desc" id="rc22desc">Row 2 → Column 0 → value is 8</div></div>
+  </div>
+</div>
+
+<!-- Sec 3 -->
+<div class="sec" id="sec3">
+  <div class="sec-label">Step 3 — fancy indexing: extract diagonal elements</div>
+  <div class="codebl" id="cb3">
+    <span class="codeline" id="cl3a"><span class="cm"># pass lists of row and col indices simultaneously</span></span>
+    <span class="codeline" id="cl3b">m1[<span class="idx" id="diagIdx">[0,1,2], [0,1,2]</span>]</span>
+    <span class="codeline" id="cl3c"><span class="cm"># picks m1[0][0], m1[1][1], m1[2][2]</span></span>
+    <span class="codeline" id="cl3d"><span class="out" id="diagOut">→  array([0, 4, 8])</span>   <span class="cm"># the diagonal!</span></span>
+  </div>
+  <div class="scan-pill sp-hl" id="pill3">&nbsp;</div>
+  <div class="hdr-row" id="hdr3"></div>
+  <div id="grid3"></div>
+  <div style="margin-top:10px;">
+    <div class="rcard rc-ok" id="rc3"><div class="rc-expr" id="rc3expr">m1[[0,1,2],[0,1,2]]  →  array([0,4,8])</div><div class="rc-desc">Main diagonal picked all at once.</div></div>
+  </div>
+</div>
+
+<!-- Sec 4 -->
+<div class="sec" id="sec4">
+  <div class="sec-label">Step 4 — watch out: 1D vs 2D indexing</div>
+  <div class="codebl" id="cb4">
+    <span class="codeline" id="cl4a"><span class="cm"># on a 2D array — works fine:</span></span>
+    <span class="codeline" id="cl4b">m1[<span class="idx">2, 3</span>]   <span class="out">→  correct value</span></span>
+    <span class="codeline" id="cl4c"><span class="cm"># on a 1D array — this throws:</span></span>
+    <span class="codeline" id="cl4d">arr[<span class="idx">2, 3</span>]   <span class="err">→  IndexError: too many indices</span></span>
+    <span class="codeline" id="cl4e"><span class="cm"># for 1D use:  arr[[2, 3]]  — list of indices</span></span>
+  </div>
+  <div style="margin-top:4px;">
+    <div class="rcard rc-ok"  id="rc41"><div class="rc-expr">2D array: m1[row, col] ✓</div><div class="rc-desc">Comma-separated — one index per axis. Works on 2D arrays.</div></div>
+    <div class="rcard rc-err" id="rc42"><div class="rc-expr">1D array: arr[2, 3] ✗ — IndexError</div><div class="rc-desc">1D has only one axis. Use arr[[2, 3]] (list of indices) instead.</div></div>
+  </div>
+</div>
+
+<script>
+let DATA=[[0,1,2,3],[4,5,6,7],[8,9,10,11]], R=3, C=4;
+
+function buildEditGrid(){
+  R=parseInt(document.getElementById('selRows').value);
+  C=parseInt(document.getElementById('selCols').value);
+  const hdrs=document.getElementById('editColHdrs'); hdrs.innerHTML='';
+  const dummy=document.createElement('div'); dummy.style.cssText='width:48px;flex-shrink:0;'; hdrs.appendChild(dummy);
+  for(let c=0;c<C;c++){ const h=document.createElement('div'); h.className='edit-col-hdr'; h.textContent='col '+c; hdrs.appendChild(h); }
+  const grid=document.getElementById('editGrid'); grid.innerHTML='';
+  for(let r=0;r<R;r++){
+    const row=document.createElement('div'); row.className='edit-row';
+    const lbl=document.createElement('div'); lbl.className='edit-lbl'; lbl.textContent='row '+r; row.appendChild(lbl);
+    for(let c=0;c<C;c++){
+      const inp=document.createElement('input');
+      inp.className='edit-cell'; inp.type='number'; inp.id=`ec${r}${c}`;
+      inp.value=(DATA[r]&&DATA[r][c]!==undefined)?DATA[r][c]:r*C+c;
+      inp.addEventListener('input',updateCodePreview);
+      row.appendChild(inp);
+    }
+    grid.appendChild(row);
+  }
+  updateCodePreview();
+}
+
+function updateCodePreview(){
+  const rows=[];
+  for(let r=0;r<R;r++){
+    const row=[]; for(let c=0;c<C;c++){ const el=document.getElementById(`ec${r}${c}`); row.push(el?parseInt(el.value)||0:0); }
+    rows.push('['+row.join(',')+']');
+  }
+  document.getElementById('cl1code').textContent=`m1 = np.array([${rows.join(',')}])`;
+}
+
+function readData(){
+  DATA=[];
+  for(let r=0;r<R;r++){ DATA[r]=[]; for(let c=0;c<C;c++){ const el=document.getElementById(`ec${r}${c}`); DATA[r][c]=el?parseInt(el.value)||0:0; } }
+}
+
+function loadPreset(type){
+  if(type==='default'){ document.getElementById('selRows').value=3; document.getElementById('selCols').value=4; buildEditGrid(); for(let r=0;r<3;r++) for(let c=0;c<4;c++){ const el=document.getElementById(`ec${r}${c}`); if(el) el.value=r*4+c; } }
+  if(type==='square') { document.getElementById('selRows').value=3; document.getElementById('selCols').value=3; buildEditGrid(); for(let r=0;r<3;r++) for(let c=0;c<3;c++){ const el=document.getElementById(`ec${r}${c}`); if(el) el.value=r*3+c; } }
+  if(type==='custom') { buildEditGrid(); for(let r=0;r<R;r++) for(let c=0;c<C;c++){ const el=document.getElementById(`ec${r}${c}`); if(el) el.value=Math.floor(Math.random()*99)+1; } }
+  updateCodePreview();
+}
+
+document.getElementById('applyDims').addEventListener('click',buildEditGrid);
+buildEditGrid();
+
+function makeHdrs(id){ const el=document.getElementById(id); el.innerHTML=''; el.className='hdr-row'; for(let c=0;c<C;c++){ const h=document.createElement('div'); h.className='hdr-cell'; h.textContent='col '+c; el.appendChild(h); } }
+function makeGrid(id,pfx,dim=false){ const cont=document.getElementById(id); cont.innerHTML=''; DATA.forEach((row,r)=>{ const wrap=document.createElement('div'); wrap.className='data-row'; const lbl=document.createElement('div'); lbl.className='row-label'; lbl.textContent='row '+r; wrap.appendChild(lbl); row.forEach((v,c)=>{ const cell=document.createElement('div'); cell.className=`cell ${dim?'c-dim':'c-blue'}`; cell.id=`${pfx}${r}${c}`; cell.textContent=v; wrap.appendChild(cell); }); cont.appendChild(wrap); }); }
+function getCell(pfx,r,c){ return document.getElementById(`${pfx}${r}${c}`); }
+function resetGrid(pfx){ DATA.forEach((_,r)=>DATA[r].forEach((_,c)=>{ const e=getCell(pfx,r,c); if(e) e.className='cell c-blue'; })); }
+function clrHL(secId){ document.querySelectorAll(`#${secId} .codeline`).forEach(e=>e.classList.remove('hl')); }
+function hlLine(id){ const e=document.getElementById(id); if(e) e.classList.add('hl'); }
+function showEl(id){ const e=document.getElementById(id); if(e) e.style.opacity='1'; }
+function activeSection(id){ document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+function updateDynamicContent(){
+  const r1=Math.min(1,R-1), c1=Math.min(2,C-1), r2=Math.min(2,R-1), c2=0;
+  const v1=DATA[r1]?.[c1]??'?', v2=DATA[r2]?.[c2]??'?';
+  document.getElementById('idx2a').textContent=`${r1}, ${c1}`;
+  document.getElementById('out2a').textContent=`→  ${v1}`;
+  document.getElementById('idx2b').textContent=`${r2}, ${c2}`;
+  document.getElementById('out2b').textContent=`→  ${v2}`;
+  document.getElementById('rc21expr').textContent=`m1[${r1}, ${c1}] = ${v1}`;
+  document.getElementById('rc21desc').textContent=`Row ${r1} → Column ${c1} → value is ${v1}`;
+  document.getElementById('rc22expr').textContent=`m1[${r2}, ${c2}] = ${v2}`;
+  document.getElementById('rc22desc').textContent=`Row ${r2} → Column ${c2} → value is ${v2}`;
+  const diagN=Math.min(R,C), dIdxs=Array.from({length:diagN},(_,i)=>i), dVals=dIdxs.map(i=>DATA[i]?.[i]??'?');
+  document.getElementById('diagIdx').textContent=`[${dIdxs.join(',')}], [${dIdxs.join(',')}]`;
+  document.getElementById('diagOut').textContent=`→  array([${dVals.join(', ')}])`;
+  document.getElementById('rc3expr').textContent=`m1[[${dIdxs.join(',')}],[${dIdxs.join(',')}]]  →  array([${dVals.join(', ')}])`;
+}
+
+const STEPS=[
+  {s:'sec1', t:'build', info:'Array ready. Press Step to start the simulation.'},
+  {s:'sec2', t:'sec',   info:'Step 2: Pick a single element with m1[row, col].'},
+  {s:'sec2', t:'cb',  id:'cb2', line:'cl2a', info:'m1[row, col] — go to that row, then that column.'},
+  {s:'sec2', t:'rowhl', pfx:'g2', rFn:()=>Math.min(1,R-1), line:'cl2a', info:'Row highlighted in yellow — moving to the correct row first.'},
+  {s:'sec2', t:'cellhl', pfx:'g2', rFn:()=>Math.min(1,R-1), cFn:()=>Math.min(2,C-1), cls:'c-hit', pill:'pill2', pillCls:'sp-ok', line:'cl2a', info:'Correct cell found — highlighted green!'},
+  {s:'sec2', t:'rcard', id:'rc21', info:'First element confirmed.'},
+  {s:'sec2', t:'reset', pfx:'g2', line:'cl2b', info:'Now picking a different element — row 2, col 0.'},
+  {s:'sec2', t:'rowhl', pfx:'g2', rFn:()=>Math.min(2,R-1), line:'cl2b', info:'Row highlighted in yellow — moving to the correct row.'},
+  {s:'sec2', t:'cellhl', pfx:'g2', rFn:()=>Math.min(2,R-1), cFn:()=>0, cls:'c-hit', pill:'pill2', pillCls:'sp-ok', line:'cl2b', info:'Correct cell found — highlighted green!'},
+  {s:'sec2', t:'rcard', id:'rc22', info:'Second element confirmed.'},
+  {s:'sec3', t:'sec',   info:'Step 3: Fancy indexing — pick multiple elements at once using lists.'},
+  {s:'sec3', t:'cb',  id:'cb3', line:'cl3a', info:'Pass lists of row and col indices — NumPy pairs them up.'},
+  {s:'sec3', t:'line', line:'cl3b', info:'m1[[0,1,2],[0,1,2]] pairs (0,0),(1,1),(2,2) — the diagonal.'},
+  {s:'sec3', t:'diag', i:0, line:'cl3c', info:'m1[0][0] selected — highlighted yellow.'},
+  {s:'sec3', t:'diag', i:1, line:'cl3c', info:'m1[1][1] selected — highlighted yellow.'},
+  {s:'sec3', t:'diag', i:2, line:'cl3d', info:'m1[2][2] selected — diagonal complete!'},
+  {s:'sec3', t:'rcard', id:'rc3', info:'Diagonal extracted in one line — all green!'},
+  {s:'sec4', t:'sec',   info:'Step 4: Common mistake — using 2D indexing on a 1D array.'},
+  {s:'sec4', t:'cb',  id:'cb4', line:'cl4a', info:'On a 2D array, two indices work fine — one for each axis.'},
+  {s:'sec4', t:'line', line:'cl4b', info:'m1[2, 3] — row 2, col 3. Works on 2D.'},
+  {s:'sec4', t:'rcard', id:'rc41', info:'2D: comma separates two indices — one per dimension.'},
+  {s:'sec4', t:'line', line:'cl4d', info:'On a 1D array, arr[2,3] throws IndexError — only one axis!'},
+  {s:'sec4', t:'rcard', id:'rc42', info:'For 1D arrays use arr[[2,3]] — a list, not a comma.'},
+];
+
+let current=-1, playing=false, playTimer=null, built={};
+
+function getSpeed(){ return parseInt(document.getElementById('speedSel').value); }
+function setInfo(t){ document.getElementById('stepInfo').textContent=t; }
+function setPhase(t){ document.getElementById('phaseLabel').textContent=t; }
+function setPct(s){ document.getElementById('progressFill').style.width=Math.round(((s+1)/STEPS.length)*100)+'%'; }
+
+function applyStep(s){
+  setPct(s);
+  const step=STEPS[s];
+  if(step.line){ clrHL(step.s); hlLine(step.line); }
+
+  if(step.t==='build'){ readData(); updateDynamicContent(); activeSection('sec1'); setInfo(step.info); setPhase('Step 1'); return; }
+  if(step.t==='sec'){
+    showEl(step.s); activeSection(step.s);
+    if(!built[step.s]){
+      if(step.s==='sec2'){ makeHdrs('hdr2'); makeGrid('grid2','g2'); }
+      if(step.s==='sec3'){ makeHdrs('hdr3'); makeGrid('grid3','g3'); }
+      built[step.s]=true;
+    }
+    setInfo(step.info); setPhase('Step '+step.s.replace('sec','')); return;
+  }
+  if(step.t==='cb'){ showEl(step.id); setInfo(step.info); return; }
+  if(step.t==='line'){ setInfo(step.info); return; }
+  if(step.t==='rcard'){ document.getElementById(step.id).classList.add('show'); setInfo(step.info); return; }
+
+  if(step.t==='rowhl'){
+    const r=step.rFn();
+    DATA.forEach((_,ri)=>DATA[ri].forEach((_,ci)=>{ const e=getCell(step.pfx,ri,ci); if(e) e.className=`cell ${ri===r?'c-rowhl':'c-blue'}`; }));
+    setInfo(`Row ${r} highlighted — moving to row ${r} first.`); return;
+  }
+  if(step.t==='cellhl'){
+    const r=step.rFn(), c=step.cFn(), v=DATA[r]?.[c]??'?';
+    DATA.forEach((_,ri)=>DATA[ri].forEach((_,ci)=>{ const e=getCell(step.pfx,ri,ci); if(e) e.className=`cell ${(ri===r&&ci===c)?step.cls:'c-blue'}`; }));
+    const pill=document.getElementById(step.pill);
+    pill.className=`scan-pill ${step.pillCls}`; pill.style.opacity='1';
+    pill.textContent=`Row ${r} → Col ${c} → value = ${v}`;
+    setInfo(`Found! m1[${r}, ${c}] = ${v}`); return;
+  }
+  if(step.t==='reset'){
+    document.getElementById('pill2').style.opacity='0';
+    resetGrid(step.pfx); setInfo(step.info); return;
+  }
+  if(step.t==='diag'){
+    const diagN=Math.min(R,C);
+    for(let i=0;i<diagN;i++){ const e=getCell('g3',i,i); if(e) e.className=`cell ${i<=step.i?'c-diag':'c-blue'}`; }
+    const v=DATA[step.i]?.[step.i]??'?';
+    const pill=document.getElementById('pill3');
+    pill.className='scan-pill sp-hl'; pill.style.opacity='1';
+    pill.textContent=`m1[${step.i}][${step.i}] = ${v} selected`;
+    setInfo(`m1[${step.i}][${step.i}] = ${v} — diagonal element ${step.i+1} picked.`); return;
+  }
+}
+
+function stepForward(){ if(current>=STEPS.length-1) return; current++; applyStep(current); document.getElementById('stepBtn').disabled=current>=STEPS.length-1; }
+function startPlay(){ if(current>=STEPS.length-1) reset(); playing=true; document.getElementById('playBtn').textContent='⏸ Pause'; document.getElementById('stepBtn').disabled=true; tick(); }
+function tick(){ if(!playing) return; if(current>=STEPS.length-1){ stopPlay(); return; } stepForward(); playTimer=setTimeout(tick,getSpeed()); }
+function stopPlay(){ playing=false; clearTimeout(playTimer); document.getElementById('playBtn').textContent='▶ Play'; document.getElementById('stepBtn').disabled=current>=STEPS.length-1; }
+function reset(){
+  stopPlay(); current=-1; built={};
+  ['sec2','sec3','sec4'].forEach(id=>{ const e=document.getElementById(id); if(e){e.style.opacity='0';e.classList.remove('active');} });
+  document.getElementById('sec1').classList.remove('active');
+  ['cb2','cb3','cb4'].forEach(id=>{ const e=document.getElementById(id); if(e) e.style.opacity='0'; });
+  ['rc21','rc22','rc3','rc41','rc42'].forEach(id=>{ const e=document.getElementById(id); if(e) e.classList.remove('show'); });
+  ['pill2','pill3'].forEach(id=>{ const e=document.getElementById(id); if(e){e.style.opacity='0';e.textContent='';} });
+  ['grid2','hdr2','grid3','hdr3'].forEach(id=>{ const e=document.getElementById(id); if(e) e.innerHTML=''; });
+  document.querySelectorAll('.codeline').forEach(e=>e.classList.remove('hl'));
+  document.getElementById('progressFill').style.width='0%';
+  document.getElementById('phaseLabel').textContent='';
+  document.getElementById('stepInfo').textContent='Edit the array below, then press Play.';
+  document.getElementById('stepBtn').disabled=false;
+  document.getElementById('playBtn').textContent='▶ Play';
+}
+
+document.getElementById('playBtn').addEventListener('click',()=>{ if(playing) stopPlay(); else startPlay(); });
+document.getElementById('stepBtn').addEventListener('click',stepForward);
+document.getElementById('resetBtn').addEventListener('click',reset);
+reset();
+</script>
