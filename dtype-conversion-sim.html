@@ -1,0 +1,364 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: sans-serif; background: #f7f7fb; padding: 1.25rem; }
+  .btn-row { display: flex; gap: 8px; margin-bottom: .75rem; flex-wrap: wrap; align-items: center; }
+  button { font-size: 13px; padding: 6px 16px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #222; cursor: pointer; }
+  button:hover { background: #f0f0f0; }
+  button.primary { background: #185FA5; color: #fff; border-color: #185FA5; }
+  button.primary:hover { background: #0C447C; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  select { font-size: 13px; padding: 4px 10px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #222; }
+  .progress-bar { height: 4px; background: #E6F1FB; border-radius: 2px; margin-bottom: .75rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: #185FA5; border-radius: 2px; transition: width 0.3s; }
+  .step-info { font-size: 13px; color: #0C447C; background: #E6F1FB; border: 1px solid #85B7EB; border-radius: 8px; padding: 9px 16px; margin-bottom: 1rem; min-height: 36px; text-align: center; line-height: 1.5; }
+
+  .sec { background: #fff; border-radius: 14px; border: 0.5px solid #e0e0e0; padding: 1rem 1.25rem; margin-bottom: .75rem; opacity: 0; transition: opacity 0.5s, border-color 0.3s; }
+  .sec.active { border-color: #185FA5; box-shadow: 0 0 0 3px #E6F1FB; }
+  .sec-label { font-size: 11px; font-weight: 700; color: #185FA5; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+
+  .builder-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; padding: 10px 14px; background: #f0f5ff; border-radius: 10px; border: 1px solid #c5d8f5; }
+  .builder-row label { font-size: 12px; color: #185FA5; font-weight: 600; }
+  .preset-btn { font-size: 11px; padding: 3px 10px; border-radius: 6px; border: 1px solid #85B7EB; background: #E6F1FB; color: #0C447C; cursor: pointer; }
+  .preset-btn:hover { background: #B5D4F4; }
+
+  .elem-builder { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; align-items: flex-end; }
+  .elem-slot { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+  .elem-idx { font-size: 10px; color: #999; }
+  .elem-val-inp { width: 80px; height: 46px; border-radius: 8px; border: 2px solid #85B7EB; background: #E6F1FB; color: #0C447C; font-size: 13px; font-weight: 700; text-align: center; padding: 0 4px; }
+  .elem-val-inp:focus { outline: none; border-color: #185FA5; background: #fff; }
+  .elem-type-sel { font-size: 11px; padding: 2px 4px; border-radius: 6px; border: 1px solid #85B7EB; background: #fff; color: #444; width: 80px; }
+
+  .codebl { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 8px 4px; font-family: monospace; font-size: 12.5px; line-height: 1.85; overflow-x: auto; opacity: 0; transition: opacity 0.5s; margin-bottom: 10px; }
+  .codeline { padding: 2px 12px; border-radius: 3px; white-space: pre; color: #111; display: block; transition: background 0.3s; }
+  .codeline.hl { background: #FFF9C4; border-left: 3px solid #F9A825; padding-left: 9px; }
+  .cm  { color: #888; }
+  .out { color: #1B5E20; font-weight: 600; }
+  .err { color: #B71C1C; font-weight: 600; }
+  .idx { color: #185FA5; font-weight: 700; }
+
+  .scan-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .scan-cell-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .scan-idx-lbl { font-size: 10px; color: #999; }
+  .cell { width: 80px; height: 52px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 2px solid; transition: all 0.3s; font-family: monospace; text-align: center; padding: 0 4px; }
+  .c-blue  { background: #E6F1FB; color: #0C447C; border-color: #378ADD; }
+  .c-rowhl { background: #FFF9C4; color: #7B6000; border-color: #F9A825; }
+  .c-hit   { background: #E8F5E9; color: #1B5E20; border-color: #43A047; transform: scale(1.08); }
+  .c-dim   { background: #f9f9f9; color: #ccc; border-color: #eee; }
+
+  .type-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 8px; border-radius: 5px; opacity: 0; transition: opacity 0.3s; }
+  .tb-int   { background: #EAF3DE; color: #3B6D11; border: 1px solid #639922; }
+  .tb-float { background: #EBF5FB; color: #185FA5; border: 1px solid #378ADD; }
+  .tb-str   { background: #FAEEDA; color: #854F0B; border: 1px solid #EF9F27; }
+
+  .scan-pill { font-size: 13px; font-weight: 500; border-radius: 7px; padding: 5px 14px; display: inline-block; margin-bottom: 8px; opacity: 0; transition: opacity 0.3s; min-height: 28px; }
+  .sp-hl { background: #FFF9C4; color: #7B6000; border: 1px solid #F9A825; }
+  .sp-ok { background: #E8F5E9; color: #1B5E20; border: 1px solid #81C784; }
+
+  .hier-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .hier-item { border-radius: 9px; padding: 10px 18px; font-size: 14px; font-weight: 700; font-family: monospace; border: 2px solid; opacity: 0.2; transition: all 0.4s; }
+  .hier-item.active { opacity: 1; }
+  .hier-item.winner { border-width: 3px; transform: scale(1.1); box-shadow: 0 0 0 4px rgba(239,159,39,0.25); }
+  .hi-int   { background: #EAF3DE; border-color: #639922; color: #27500A; }
+  .hi-float { background: #EBF5FB; border-color: #378ADD; color: #0C447C; }
+  .hi-str   { background: #FAEEDA; border-color: #EF9F27; color: #633806; }
+  .hier-arrow { font-size: 20px; color: #ccc; }
+
+  .rcards { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .rcard { border-radius: 10px; padding: 10px 14px; border: 2px solid; opacity: 0; transition: opacity 0.5s; }
+  .rcard.show { opacity: 1; }
+  .rc-ok  { background: #E8F5E9; border-color: #43A047; }
+  .rc-ok  .rc-expr { color: #1B5E20; } .rc-ok  .rc-desc { color: #2E7D32; }
+  .rc-err { background: #FFEBEE; border-color: #E53935; }
+  .rc-err .rc-expr { color: #B71C1C; } .rc-err .rc-desc { color: #C62828; }
+  .rc-hl  { background: #FFF9C4; border-color: #F9A825; }
+  .rc-hl  .rc-expr { color: #7B6000; } .rc-hl  .rc-desc { color: #7B6000; }
+  .rc-expr { font-family: monospace; font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .rc-desc { font-size: 12px; line-height: 1.5; }
+</style>
+
+<h2 style="font-size:16px;font-weight:500;color:#111;margin-bottom:.75rem;">NumPy dtype conversion — how mixed types become one</h2>
+
+<div class="btn-row">
+  <button class="primary" id="playBtn">▶ Play</button>
+  <button id="stepBtn">Step →</button>
+  <button id="resetBtn">↺ Reset</button>
+  <span style="font-size:12px;color:#888;">Speed:</span>
+  <select id="speedSel">
+    <option value="900">Slow</option>
+    <option value="500" selected>Normal</option>
+    <option value="180">Fast</option>
+  </select>
+  <span id="phaseLabel" style="font-size:12px;color:#aaa;margin-left:4px;"></span>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+<div class="step-info" id="stepInfo">Edit the array below, then press Play.</div>
+
+<!-- Sec 1 -->
+<div class="sec" id="sec1" style="opacity:1;">
+  <div class="sec-label">Step 1 — build your array</div>
+  <div class="builder-row">
+    <label>Presets:</label>
+    <button class="preset-btn" onclick="loadPreset('mixed')">Mixed (default)</button>
+    <button class="preset-btn" onclick="loadPreset('intfloat')">Int + Float</button>
+    <button class="preset-btn" onclick="loadPreset('intonly')">Int only</button>
+    <button class="preset-btn" onclick="loadPreset('floatstr')">Float + Str</button>
+  </div>
+  <div class="elem-builder" id="elemBuilder"></div>
+  <div class="codebl" id="cb1" style="opacity:1;">
+    <span class="codeline" id="cl1code">arr = np.array([3, '5', 3.5, 'Thanu'])</span>
+    <span class="codeline"><span class="cm"># types: int, str, float, str — who wins?</span></span>
+  </div>
+</div>
+
+<!-- Sec 2 -->
+<div class="sec" id="sec2">
+  <div class="sec-label">Step 2 — NumPy scans each element's Python type</div>
+  <div class="codebl" id="cb2">
+    <span class="codeline" id="cl2a"><span class="cm"># np.array() inspects every element's Python type</span></span>
+    <span class="codeline" id="cl2b">arr = np.array([<span class="idx" id="cl2vals">3, '5', 3.5, 'Thanu'</span>])</span>
+    <span class="codeline" id="cl2c"><span class="cm"># types found: </span><span class="out" id="cl2types">int, str, float, str</span></span>
+  </div>
+  <div class="scan-pill sp-hl" id="pill2">&nbsp;</div>
+  <div class="scan-row" id="scanRow"></div>
+</div>
+
+<!-- Sec 3 -->
+<div class="sec" id="sec3">
+  <div class="sec-label">Step 3 — dtype hierarchy: least lossy type wins</div>
+  <div class="codebl" id="cb3">
+    <span class="codeline" id="cl3a"><span class="cm"># hierarchy — int  →  float  →  str (unicode)</span></span>
+    <span class="codeline" id="cl3b"><span class="cm"># str can hold anything → wins when present</span></span>
+    <span class="codeline" id="cl3c"><span class="cm"># float beats int: 3 becomes 3.0 — no info lost</span></span>
+  </div>
+  <div class="hier-row">
+    <div class="hier-item hi-int"   id="hi-int">int64</div>
+    <div class="hier-arrow">→</div>
+    <div class="hier-item hi-float" id="hi-float">float64</div>
+    <div class="hier-arrow">→</div>
+    <div class="hier-item hi-str"   id="hi-str">str &lt;U&gt;</div>
+  </div>
+  <div class="scan-pill sp-ok" id="pill3">&nbsp;</div>
+</div>
+
+<!-- Sec 4 -->
+<div class="sec" id="sec4">
+  <div class="sec-label">Step 4 — all elements converted to the winning dtype</div>
+  <div class="codebl" id="cb4">
+    <span class="codeline" id="cl4a">array([<span class="out" id="cl4vals">'3','5','3.5','Thanu'</span>], dtype=<span class="idx" id="cl4dtype">'&lt;U21&gt;'</span>)</span>
+    <span class="codeline" id="cl4b"><span class="cm"># ⚠ str array — math will throw TypeError</span></span>
+    <span class="codeline" id="cl4c">arr[0] + 1  <span class="err">→  TypeError: can only concatenate str</span></span>
+  </div>
+  <div class="rcards" id="convCards"></div>
+  <div class="rcards" id="errCards" style="display:none; margin-top:8px;">
+    <div class="rcard rc-err" id="rc4err">
+      <div class="rc-expr">arr[0] + 1  →  TypeError</div>
+      <div class="rc-desc">The int 3 is now the string '3' — arithmetic is gone.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PRESETS = {
+  mixed:    [{val:'3',type:'int'},{val:"'5'",type:'str'},{val:'3.5',type:'float'},{val:"'Thanu'",type:'str'}],
+  intfloat: [{val:'1',type:'int'},{val:'2.5',type:'float'},{val:'3',type:'int'},{val:'4.0',type:'float'}],
+  intonly:  [{val:'10',type:'int'},{val:'20',type:'int'},{val:'30',type:'int'}],
+  floatstr: [{val:'1.5',type:'float'},{val:"'hello'",type:'str'},{val:'2.7',type:'float'}],
+};
+let ELEMS = PRESETS.mixed.map(e=>({...e}));
+
+function loadPreset(name){ ELEMS=PRESETS[name].map(e=>({...e})); buildElemBuilder(); updateCode1(); reset(); }
+
+function buildElemBuilder(){
+  const wrap=document.getElementById('elemBuilder'); wrap.innerHTML='';
+  ELEMS.forEach((e,i)=>{
+    const slot=document.createElement('div'); slot.className='elem-slot';
+    slot.innerHTML=`<div class="elem-idx">elem ${i}</div>
+      <input class="elem-val-inp" id="ev${i}" value="${e.val}" oninput="onElemChange(${i})">
+      <select class="elem-type-sel" id="et${i}" onchange="onElemChange(${i})">
+        <option value="int"   ${e.type==='int'  ?'selected':''}>int</option>
+        <option value="float" ${e.type==='float'?'selected':''}>float</option>
+        <option value="str"   ${e.type==='str'  ?'selected':''}>str</option>
+      </select>`;
+    wrap.appendChild(slot);
+  });
+}
+
+function onElemChange(i){
+  ELEMS[i].val=document.getElementById(`ev${i}`).value;
+  ELEMS[i].type=document.getElementById(`et${i}`).value;
+  updateCode1();
+}
+
+function getWinner(){ const t=new Set(ELEMS.map(e=>e.type)); if(t.has('str')) return 'str'; if(t.has('float')) return 'float'; return 'int'; }
+function getDtypeLabel(w){ return w==='str'?"'<U21>'":w==='float'?'float64':'int64'; }
+function getConverted(e,w){
+  if(w==='str'){ const b=e.val.replace(/^['"]|['"]$/g,''); return `'${b}'`; }
+  if(w==='float'){ return e.type==='float'?e.val:(e.val.includes('.')?e.val:e.val+'.0'); }
+  return e.val;
+}
+
+function updateCode1(){ document.getElementById('cl1code').textContent=`arr = np.array([${ELEMS.map(e=>e.val).join(', ')}])`; }
+
+function updateSec2Code(){
+  document.getElementById('cl2vals').textContent=ELEMS.map(e=>e.val).join(', ');
+  document.getElementById('cl2types').textContent=[...new Set(ELEMS.map(e=>e.type))].join(', ');
+}
+
+function updateSec4Code(){
+  const w=getWinner();
+  document.getElementById('cl4vals').textContent=ELEMS.map(e=>getConverted(e,w)).join(', ');
+  document.getElementById('cl4dtype').textContent=getDtypeLabel(w);
+  if(w==='str'){
+    document.getElementById('cl4b').innerHTML='<span class="cm"># ⚠ str array — math will throw TypeError</span>';
+    document.getElementById('cl4c').style.display='block';
+    document.getElementById('cl4c').innerHTML=`arr[0] + 1  <span class="err">→  TypeError: can only concatenate str</span>`;
+  } else if(w==='float'){
+    document.getElementById('cl4b').innerHTML='<span class="cm"># int values upcast to float — no info lost</span>';
+    document.getElementById('cl4c').style.display='block';
+    const v=(parseFloat(ELEMS.find(e=>e.type==='int')?.val)||0)+1;
+    document.getElementById('cl4c').innerHTML=`arr[0] + 1  <span class="out">→  ${v}.0  ✓</span>`;
+  } else {
+    document.getElementById('cl4b').innerHTML='<span class="cm"># all int — no conversion needed</span>';
+    document.getElementById('cl4c').style.display='none';
+  }
+}
+
+function buildScanRow(){
+  const row=document.getElementById('scanRow'); row.innerHTML='';
+  ELEMS.forEach((e,i)=>{
+    const wrap=document.createElement('div'); wrap.className='scan-cell-wrap';
+    wrap.innerHTML=`<div class="scan-idx-lbl">elem ${i}</div>
+      <div class="cell c-blue" id="sc${i}">${e.val}</div>
+      <div class="type-badge tb-${e.type}" id="tb${i}">${e.type}</div>`;
+    row.appendChild(wrap);
+  });
+}
+
+function buildConvCards(){
+  const w=getWinner(), cards=document.getElementById('convCards'); cards.innerHTML='';
+  ELEMS.forEach((e,i)=>{
+    const cv=getConverted(e,w), changed=e.type!==w;
+    const cls=changed?'rc-hl':'rc-ok', note=changed?`${e.type} → ${w}`:'type unchanged';
+    const div=document.createElement('div'); div.className=`rcard ${cls}`; div.id=`cc${i}`;
+    div.innerHTML=`<div class="rc-expr">arr[${i}] = ${cv}</div><div class="rc-desc">${e.val} (${e.type}) → ${cv} (${note})</div>`;
+    cards.appendChild(div);
+  });
+}
+
+function buildSteps(){
+  const w=getWinner(), types=new Set(ELEMS.map(e=>e.type));
+  const steps=[
+    {s:'sec1',t:'build', info:'Array ready. Press Step to start the simulation.'},
+    {s:'sec2',t:'sec',   info:'Step 2: NumPy scans every element to detect its Python type.'},
+    {s:'sec2',t:'cb', id:'cb2', line:'cl2a', info:'np.array() receives your list — it must decide on a single dtype.'},
+    ...ELEMS.map((e,i)=>({s:'sec2',t:'scan',i, info:`Element ${i}: ${e.val} — Python type detected: ${e.type}`})),
+    {s:'sec3',t:'sec',   info:'Step 3: Dtype hierarchy — the least lossy type wins.'},
+    {s:'sec3',t:'cb', id:'cb3', line:'cl3a', info:'Rule: int → float → str. Any str present? str wins everything.'},
+  ];
+  if(types.has('int'))   steps.push({s:'sec3',t:'hier',dtype:'int',   info:'int detected — candidate dtype: int64'});
+  if(types.has('float')) steps.push({s:'sec3',t:'hier',dtype:'float', info:'float detected — float64 beats int64 (no loss)'});
+  if(types.has('str'))   steps.push({s:'sec3',t:'hier',dtype:'str',   info:'str detected — unicode beats everything!'});
+  steps.push({s:'sec3',t:'winner', info:`Winner: ${getDtypeLabel(w)} — all elements will now be converted.`});
+  steps.push({s:'sec4',t:'sec',    info:'Step 4: Every element is converted to the winning dtype.'});
+  steps.push({s:'sec4',t:'cb', id:'cb4', line:'cl4a', info:`Final array — dtype confirmed as ${getDtypeLabel(w)}.`});
+  ELEMS.forEach((e,i)=>{
+    const cv=getConverted(e,w), changed=e.type!==w;
+    steps.push({s:'sec4',t:'convcard',i, info:changed?`${e.val} (${e.type}) → ${cv} (${w}) — converted!`:`${e.val} — already ${w}, no change.`});
+  });
+  if(w==='str') steps.push({s:'sec4',t:'rcard',id:'rc4err', info:'⚠ Now a string array — arr[0]+1 throws TypeError. Math is gone!'});
+  return steps;
+}
+
+let STEPS=[], current=-1, playing=false, playTimer=null;
+
+function getSpeed(){ return parseInt(document.getElementById('speedSel').value); }
+function setInfo(t){ document.getElementById('stepInfo').textContent=t; }
+function setPhase(t){ document.getElementById('phaseLabel').textContent=t; }
+function setPct(s){ document.getElementById('progressFill').style.width=Math.round(((s+1)/STEPS.length)*100)+'%'; }
+function showEl(id){ const e=document.getElementById(id); if(e) e.style.opacity='1'; }
+function clrHL(sid){ document.querySelectorAll(`#${sid} .codeline`).forEach(e=>e.classList.remove('hl')); }
+function hlLine(id){ const e=document.getElementById(id); if(e) e.classList.add('hl'); }
+function activeSection(id){ document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+function applyStep(s){
+  setPct(s);
+  const step=STEPS[s];
+  if(step.line){ clrHL(step.s); hlLine(step.line); }
+
+  if(step.t==='build'){ activeSection('sec1'); setInfo(step.info); setPhase('Step 1'); return; }
+  if(step.t==='sec'){ showEl(step.s); activeSection(step.s); setInfo(step.info); setPhase('Step '+step.s.replace('sec','')); return; }
+  if(step.t==='cb'){ showEl(step.id); setInfo(step.info); return; }
+  if(step.t==='line'){ setInfo(step.info); return; }
+  if(step.t==='rcard'){
+    const e=document.getElementById(step.id);
+    if(e){ e.parentElement.style.display='flex'; e.classList.add('show'); }
+    setInfo(step.info); return;
+  }
+  if(step.t==='convcard'){ const e=document.getElementById(`cc${step.i}`); if(e) e.classList.add('show'); setInfo(step.info); return; }
+
+  if(step.t==='scan'){
+    const i=step.i;
+    const cell=document.getElementById(`sc${i}`); if(cell) cell.className='cell c-rowhl';
+    const badge=document.getElementById(`tb${i}`); if(badge) badge.style.opacity='1';
+    const pill=document.getElementById('pill2');
+    pill.className=`scan-pill ${ELEMS[i].type==='str'?'sp-hl':'sp-ok'}`;
+    pill.style.opacity='1';
+    pill.textContent=`elem ${i}: ${ELEMS[i].val} — type: ${ELEMS[i].type}`;
+    setInfo(step.info); return;
+  }
+  if(step.t==='hier'){ const e=document.getElementById(`hi-${step.dtype}`); if(e) e.classList.add('active'); setInfo(step.info); return; }
+  if(step.t==='winner'){
+    const w=getWinner(), el=document.getElementById(`hi-${w}`);
+    if(el) el.classList.add('winner');
+    const pill=document.getElementById('pill3');
+    pill.style.opacity='1'; pill.textContent=`Winner: ${getDtypeLabel(w)} — all elements convert to this.`;
+    setInfo(step.info); return;
+  }
+}
+
+function initSim(){ STEPS=buildSteps(); updateSec2Code(); updateSec4Code(); buildScanRow(); buildConvCards(); }
+
+function stepForward(){
+  if(current>=STEPS.length-1) return;
+  current++; applyStep(current);
+  document.getElementById('stepBtn').disabled=current>=STEPS.length-1;
+}
+function startPlay(){
+  if(current>=STEPS.length-1) reset();
+  playing=true; document.getElementById('playBtn').textContent='⏸ Pause';
+  document.getElementById('stepBtn').disabled=true; tick();
+}
+function tick(){
+  if(!playing) return;
+  if(current>=STEPS.length-1){ stopPlay(); return; }
+  stepForward(); playTimer=setTimeout(tick,getSpeed());
+}
+function stopPlay(){
+  playing=false; clearTimeout(playTimer);
+  document.getElementById('playBtn').textContent='▶ Play';
+  document.getElementById('stepBtn').disabled=current>=STEPS.length-1;
+}
+function reset(){
+  stopPlay(); current=-1; initSim();
+  ['sec2','sec3','sec4'].forEach(id=>{ const e=document.getElementById(id); if(e){e.style.opacity='0';e.classList.remove('active');} });
+  document.getElementById('sec1').classList.remove('active');
+  ['cb2','cb3','cb4'].forEach(id=>{ const e=document.getElementById(id); if(e) e.style.opacity='0'; });
+  ['pill2','pill3'].forEach(id=>{ const e=document.getElementById(id); if(e){e.style.opacity='0';e.textContent='';} });
+  document.querySelectorAll('.hier-item').forEach(e=>e.classList.remove('active','winner'));
+  document.querySelectorAll('.codeline').forEach(e=>e.classList.remove('hl'));
+  document.querySelectorAll('#convCards .rcard').forEach(e=>e.classList.remove('show'));
+  document.getElementById('rc4err').classList.remove('show');
+  document.getElementById('errCards').style.display='none';
+  document.getElementById('progressFill').style.width='0%';
+  document.getElementById('phaseLabel').textContent='';
+  document.getElementById('stepInfo').textContent='Edit the array below, then press Play.';
+  document.getElementById('stepBtn').disabled=false;
+  document.getElementById('playBtn').textContent='▶ Play';
+}
+
+document.getElementById('playBtn').addEventListener('click',()=>{ if(playing) stopPlay(); else startPlay(); });
+document.getElementById('stepBtn').addEventListener('click',stepForward);
+document.getElementById('resetBtn').addEventListener('click',reset);
+
+buildElemBuilder(); updateCode1(); reset();
+</script>
