@@ -1,0 +1,410 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: sans-serif; background: #f7f7fb; padding: 1.25rem; }
+  .btn-row { display: flex; gap: 8px; margin-bottom: .75rem; flex-wrap: wrap; align-items: center; }
+  button { font-size: 13px; padding: 6px 16px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #222; cursor: pointer; }
+  button:hover { background: #f0f0f0; }
+  button.primary { background: #185FA5; color: #fff; border-color: #185FA5; }
+  button.primary:hover { background: #0C447C; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  select { font-size: 13px; padding: 4px 10px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #222; }
+  .progress-bar { height: 4px; background: #E6F1FB; border-radius: 2px; margin-bottom: .75rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: #185FA5; border-radius: 2px; transition: width 0.3s; }
+  .step-info { font-size: 13px; color: #0C447C; background: #E6F1FB; border: 1px solid #85B7EB; border-radius: 8px; padding: 9px 16px; margin-bottom: 1rem; min-height: 36px; text-align: center; line-height: 1.5; }
+
+  .sec { background: #fff; border-radius: 14px; border: 0.5px solid #e0e0e0; padding: 1rem 1.25rem; margin-bottom: .75rem; opacity: 0; transition: opacity 0.5s, border-color 0.3s; }
+  .sec.active { border-color: #185FA5; box-shadow: 0 0 0 3px #E6F1FB; }
+  .sec-label { font-size: 11px; font-weight: 700; color: #185FA5; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+
+  /* Builder */
+  .builder-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; padding: 10px 14px; background: #f0f5ff; border-radius: 10px; border: 1px solid #c5d8f5; }
+  .builder-row label { font-size: 12px; color: #185FA5; font-weight: 600; }
+  .dim-sel { font-size: 13px; padding: 4px 10px; border-radius: 7px; border: 1.5px solid #85B7EB; color: #0C447C; font-weight: 600; background: #fff; width: 60px; }
+  .build-btn { font-size: 12px; padding: 5px 16px; border-radius: 7px; background: #185FA5; color: #fff; border: none; cursor: pointer; }
+  .build-btn:hover { background: #0C447C; }
+  .preset-btn { font-size: 11px; padding: 3px 10px; border-radius: 6px; border: 1px solid #85B7EB; background: #E6F1FB; color: #0C447C; cursor: pointer; }
+  .preset-btn:hover { background: #B5D4F4; }
+  .edit-col-hdrs { display: flex; gap: 5px; margin-left: 48px; margin-bottom: 3px; }
+  .edit-col-hdr  { width: 54px; text-align: center; font-size: 10px; color: #999; font-weight: 500; }
+  .edit-grid { display: inline-flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+  .edit-row  { display: flex; align-items: center; gap: 5px; }
+  .edit-lbl  { width: 42px; font-size: 10px; color: #999; text-align: right; padding-right: 6px; }
+  .edit-cell { width: 54px; height: 48px; border-radius: 8px; border: 2px solid #85B7EB; background: #E6F1FB; color: #0C447C; font-size: 15px; font-weight: 700; text-align: center; }
+  .edit-cell:focus { outline: none; border-color: #185FA5; background: #fff; }
+
+  /* Code: white bg, black text */
+  .codebl { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 8px 4px; font-family: monospace; font-size: 12.5px; line-height: 1.85; overflow-x: auto; opacity: 0; transition: opacity 0.5s; margin-bottom: 10px; }
+  .codeline { padding: 2px 12px; border-radius: 3px; white-space: pre; color: #111; display: block; transition: background 0.3s; }
+  .codeline.hl { background: #FFF9C4; border-left: 3px solid #F9A825; padding-left: 9px; }
+  .cm { color: #888; } .out { color: #1B5E20; font-weight: 600; } .fn { color: #185FA5; font-weight: 700; }
+
+  /* Side-by-side grid area */
+  .grids-area { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .grid-block { display: flex; flex-direction: column; flex: 1; min-width: 180px; }
+  .grid-title { font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+
+  /* Col/row labels */
+  .col-hdrs { display: flex; gap: 4px; margin-bottom: 3px; }
+  .col-hdr-spacer { flex-shrink: 0; }
+  .col-hdr  { text-align: center; font-size: 10px; color: #888; flex-shrink: 0; }
+  .grid-row-wrap { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
+  .row-lbl  { text-align: right; font-size: 10px; color: #888; padding-right: 6px; flex-shrink: 0; }
+
+  /* Cells */
+  .cell { border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; border: 2px solid; transition: all 0.32s; flex-shrink: 0; }
+  .c-blue   { background: #E6F1FB; color: #0C447C; border-color: #378ADD; }
+  .c-purple { background: #EEEDFE; color: #26215C; border-color: #7F77DD; }
+  .c-scan-b { background: #FFF9C4; color: #7B6000; border-color: #F9A825; transform: scale(1.1); }
+  .c-scan-p { background: #FFF9C4; color: #7B6000; border-color: #F9A825; transform: scale(1.1); }
+  .c-ok-b   { background: #E6F1FB; color: #0C447C; border-color: #378ADD; }
+  .c-ok-p   { background: #E8F5E9; color: #1B5E20; border-color: #43A047; }
+  .c-dim    { background: #f5f5f5; color: #ccc; border-color: #e0e0e0; }
+
+  /* Arrow center */
+  .arrow-center { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 8px 0; gap: 6px; opacity: 0; transition: opacity 0.5s; flex-shrink: 0; }
+  .arrow-sym { font-size: 26px; color: #534AB7; }
+  .arrow-code { font-family: monospace; font-size: 14px; font-weight: 700; color: #534AB7; background: #EEEDFE; border-radius: 6px; padding: 3px 10px; }
+  .arrow-sub  { font-size: 11px; color: #888; text-align: center; line-height: 1.5; }
+
+  /* Shape badges */
+  .shape-badge { display: inline-block; font-family: monospace; font-size: 12px; font-weight: 600; border-radius: 8px; padding: 6px 14px; margin-top: 8px; opacity: 0; transition: opacity 0.5s; }
+  .sb-blue   { background: #E6F1FB; color: #0C447C; border: 1.5px solid #378ADD; }
+  .sb-purple { background: #EEEDFE; color: #26215C; border: 1.5px solid #7F77DD; }
+
+  /* Scan pill */
+  .scan-pill { font-size: 13px; font-weight: 500; border-radius: 7px; padding: 5px 14px; display: inline-block; margin-bottom: 8px; min-height: 28px; opacity: 0; transition: opacity 0.3s; }
+  .sp-hl { background: #FFF9C4; color: #7B6000; border: 1px solid #F9A825; }
+  .sp-ok { background: #E8F5E9; color: #1B5E20; border: 1px solid #81C784; }
+
+  /* Rcard */
+  .rcard { border-radius: 10px; padding: 10px 14px; border: 2px solid; opacity: 0; transition: opacity 0.5s; margin-bottom: 8px; }
+  .rcard.show { opacity: 1; }
+  .rc-ok     { background: #E8F5E9; border-color: #43A047; }
+  .rc-ok     .rc-expr { color: #1B5E20; } .rc-ok .rc-desc { color: #2E7D32; }
+  .rc-purple { background: #EEEDFE; border-color: #7F77DD; }
+  .rc-purple .rc-expr { color: #26215C; } .rc-purple .rc-desc { color: #534AB7; }
+  .rc-hl     { background: #FFF9C4; border-color: #F9A825; }
+  .rc-hl     .rc-expr { color: #7B6000; } .rc-hl .rc-desc { color: #7B6000; }
+  .rc-expr { font-family: monospace; font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+  .rc-desc { font-size: 12px; line-height: 1.6; }
+</style>
+
+<h2 style="font-size:16px;font-weight:500;color:#111;margin-bottom:.75rem;">Transpose (.T) — swapping rows and columns</h2>
+
+<div class="btn-row">
+  <button class="primary" id="playBtn">▶ Play</button>
+  <button id="stepBtn">Step →</button>
+  <button id="resetBtn">↺ Reset</button>
+  <span style="font-size:12px;color:#888;">Speed:</span>
+  <select id="speedSel">
+    <option value="900">Slow</option>
+    <option value="500" selected>Normal</option>
+    <option value="180">Fast</option>
+  </select>
+  <span id="phaseLabel" style="font-size:12px;color:#aaa;margin-left:4px;"></span>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+<div class="step-info" id="stepInfo">Edit the array below, then press Play.</div>
+
+<!-- Sec 1: Builder -->
+<div class="sec" id="sec1" style="opacity:1;">
+  <div class="sec-label">Step 1 — build your array</div>
+  <div class="builder-row">
+    <label>Rows:</label>
+    <select class="dim-sel" id="selRows"><option>2</option><option selected>3</option><option>4</option></select>
+    <label>Cols:</label>
+    <select class="dim-sel" id="selCols"><option>2</option><option>3</option><option selected>4</option><option>5</option></select>
+    <button class="build-btn" id="applyDims">Resize</button>
+    <button class="preset-btn" onclick="loadPreset('default')">Default (3×4)</button>
+    <button class="preset-btn" onclick="loadPreset('rand')">Random</button>
+  </div>
+  <div class="edit-col-hdrs" id="editColHdrs"></div>
+  <div class="edit-grid" id="editGrid"></div>
+  <div class="codebl" id="cb1" style="opacity:1;">
+    <span class="codeline" id="cl1a">a = np.array([[0,1,2,3],[4,5,6,7],[8,9,10,11]])</span>
+    <span class="codeline" id="cl1b">a.shape  <span class="out" id="shapeOut">→  (3, 4)</span>   a.ndim  <span class="out">→  2</span></span>
+  </div>
+</div>
+
+<!-- Sec 2: Side-by-side grids -->
+<div class="sec" id="sec2">
+  <div class="sec-label">Step 2 — apply .T — rows become columns</div>
+  <div class="codebl" id="cb2">
+    <span class="codeline" id="cl2a"><span class="cm"># .T swaps rows ↔ columns — no data is copied</span></span>
+    <span class="codeline" id="cl2b">t = a.<span class="fn">T</span>   <span class="cm"># a[r][c]  =  t[c][r]</span></span>
+    <span class="codeline" id="cl2c">t.shape  <span class="out" id="tshapeOut">→  (4, 3)</span>   <span class="cm"># shape reversed!</span></span>
+  </div>
+  <div class="scan-pill sp-hl" id="pill2">&nbsp;</div>
+  <div class="grids-area">
+    <div class="grid-block">
+      <div class="grid-title" id="origTitle" style="color:#185FA5;">Original a — shape (3, 4)</div>
+      <div class="col-hdrs" id="origColHdrs"></div>
+      <div id="origGrid"></div>
+      <div class="shape-badge sb-blue" id="sb1">a.shape = (3, 4) — 3 rows · 4 cols</div>
+    </div>
+    <div class="arrow-center" id="arrowMid">
+      <div class="arrow-sym">⟷</div>
+      <div class="arrow-code">a.T</div>
+      <div class="arrow-sub">rows become<br>columns</div>
+    </div>
+    <div class="grid-block">
+      <div class="grid-title" id="transTitle" style="color:#534AB7;">After Transpose — shape (4, 3)</div>
+      <div class="col-hdrs" id="transColHdrs"></div>
+      <div id="transGrid"></div>
+      <div class="shape-badge sb-purple" id="sb2">a.T.shape = (4, 3) — 4 rows · 3 cols</div>
+    </div>
+  </div>
+</div>
+
+<!-- Sec 3: Rule -->
+<div class="sec" id="sec3">
+  <div class="sec-label">Step 3 — the index rule: a[r][c] = t[c][r]</div>
+  <div class="codebl" id="cb3">
+    <span class="codeline" id="cl3a"><span class="cm"># same value, swapped indices</span></span>
+    <span class="codeline" id="cl3b">a[<span class="fn">1</span>][<span class="fn">2</span>]  <span class="out" id="ruleOut1">→  6</span>   <span class="cm"># row 1, col 2</span></span>
+    <span class="codeline" id="cl3c">t[<span class="fn">2</span>][<span class="fn">1</span>]  <span class="out" id="ruleOut2">→  6</span>   <span class="cm"># indices swapped!</span></span>
+    <span class="codeline" id="cl3d"><span class="cm"># shape flips: (R,C) → (C,R)</span></span>
+  </div>
+  <div class="rcard rc-purple" id="rc3a">
+    <div class="rc-expr" id="rcExpr1">a[1][2] = t[2][1] = 6</div>
+    <div class="rc-desc">Every element is still there — just at a new index position. Row index becomes col index and vice versa.</div>
+  </div>
+  <div class="rcard rc-ok" id="rc3b">
+    <div class="rc-expr" id="rcExpr2">shape (3,4) → (4,3)</div>
+    <div class="rc-desc">Data unchanged — only the view is reorganised. No copying happens. Transpose is instant.</div>
+  </div>
+</div>
+
+<script>
+let DATA=[[0,1,2,3],[4,5,6,7],[8,9,10,11]], R=3, C=4;
+const CW=52, CH=48, LW=40;
+
+function buildEditGrid(){
+  R=parseInt(document.getElementById('selRows').value);
+  C=parseInt(document.getElementById('selCols').value);
+  const hdrs=document.getElementById('editColHdrs'); hdrs.innerHTML='';
+  const dummy=document.createElement('div'); dummy.style.cssText=`width:${LW+6}px;flex-shrink:0;`; hdrs.appendChild(dummy);
+  for(let c=0;c<C;c++){ const h=document.createElement('div'); h.className='edit-col-hdr'; h.style.width=CW+'px'; h.textContent='col '+c; hdrs.appendChild(h); }
+  const g=document.getElementById('editGrid'); g.innerHTML='';
+  for(let r=0;r<R;r++){
+    const row=document.createElement('div'); row.className='edit-row';
+    const lbl=document.createElement('div'); lbl.className='edit-lbl'; lbl.style.width=LW+'px'; lbl.textContent='row '+r; row.appendChild(lbl);
+    for(let c=0;c<C;c++){
+      const inp=document.createElement('input'); inp.className='edit-cell'; inp.type='number'; inp.id=`ec${r}${c}`;
+      inp.style.cssText=`width:${CW}px;height:${CH}px;`;
+      inp.value=(DATA[r]&&DATA[r][c]!==undefined)?DATA[r][c]:r*C+c;
+      inp.addEventListener('input',updatePreview);
+      row.appendChild(inp);
+    }
+    g.appendChild(row);
+  }
+  updatePreview();
+}
+
+function updatePreview(){
+  const rows=[];
+  for(let r=0;r<R;r++){ const row=[]; for(let c=0;c<C;c++){ const el=document.getElementById(`ec${r}${c}`); row.push(el?parseInt(el.value)||0:0); } rows.push('['+row.join(',')+']'); }
+  document.getElementById('cl1a').textContent=`a = np.array([${rows.join(',')}])`;
+  document.getElementById('shapeOut').textContent=`→  (${R}, ${C})`;
+}
+
+function readData(){
+  DATA=[];
+  for(let r=0;r<R;r++){ DATA[r]=[]; for(let c=0;c<C;c++){ const el=document.getElementById(`ec${r}${c}`); DATA[r][c]=el?parseInt(el.value)||0:0; } }
+}
+
+function loadPreset(t){
+  if(t==='default'){ document.getElementById('selRows').value=3; document.getElementById('selCols').value=4; buildEditGrid(); for(let r=0;r<3;r++) for(let c=0;c<4;c++){ const el=document.getElementById(`ec${r}${c}`); if(el) el.value=r*4+c; } }
+  if(t==='rand')   { buildEditGrid(); for(let r=0;r<R;r++) for(let c=0;c<C;c++){ const el=document.getElementById(`ec${r}${c}`); if(el) el.value=Math.floor(Math.random()*50)+1; } }
+  updatePreview();
+}
+
+document.getElementById('applyDims').addEventListener('click',buildEditGrid);
+buildEditGrid();
+
+function updateDynamic(){
+  const TRANS=[];
+  for(let c=0;c<C;c++){ TRANS[c]=[]; for(let r=0;r<R;r++) TRANS[c].push(DATA[r][c]); }
+  document.getElementById('tshapeOut').textContent=`→  (${C}, ${R})`;
+  document.getElementById('origTitle').textContent=`Original a — shape (${R}, ${C})`;
+  document.getElementById('transTitle').textContent=`After Transpose — shape (${C}, ${R})`;
+  document.getElementById('sb1').textContent=`a.shape = (${R}, ${C}) — ${R} rows · ${C} cols`;
+  document.getElementById('sb2').textContent=`a.T.shape = (${C}, ${R}) — ${C} rows · ${R} cols`;
+  const r1=Math.min(1,R-1), c1=Math.min(2,C-1);
+  const v=DATA[r1][c1];
+  document.getElementById('cl3b').innerHTML=`a[<span class="fn">${r1}</span>][<span class="fn">${c1}</span>]  <span class="out">→  ${v}</span>   <span class="cm"># row ${r1}, col ${c1}</span>`;
+  document.getElementById('cl3c').innerHTML=`t[<span class="fn">${c1}</span>][<span class="fn">${r1}</span>]  <span class="out">→  ${v}</span>   <span class="cm"># indices swapped!</span>`;
+  document.getElementById('rcExpr1').textContent=`a[${r1}][${c1}] = t[${c1}][${r1}] = ${v}`;
+  document.getElementById('rcExpr2').textContent=`shape (${R},${C}) → (${C},${R})`;
+}
+
+// Build grids
+function buildColHdrs(contId, n){
+  const cont=document.getElementById(contId); cont.innerHTML='';
+  cont.className='col-hdrs';
+  const sp=document.createElement('div'); sp.className='col-hdr-spacer'; sp.style.width=(LW+6)+'px'; cont.appendChild(sp);
+  for(let i=0;i<n;i++){ const h=document.createElement('div'); h.className='col-hdr'; h.style.width=CW+'px'; h.textContent='col '+i; cont.appendChild(h); }
+}
+
+function buildOrigGrid(){
+  buildColHdrs('origColHdrs',C);
+  const cont=document.getElementById('origGrid'); cont.innerHTML='';
+  DATA.forEach((row,r)=>{
+    const wrap=document.createElement('div'); wrap.className='grid-row-wrap';
+    const lbl=document.createElement('div'); lbl.className='row-lbl'; lbl.style.width=LW+'px'; lbl.textContent='row '+r; wrap.appendChild(lbl);
+    row.forEach((v,c)=>{
+      const cell=document.createElement('div'); cell.className='cell c-blue'; cell.id=`og${r}${c}`;
+      cell.style.cssText=`width:${CW}px;height:${CH}px;`; cell.textContent=v; wrap.appendChild(cell);
+    });
+    cont.appendChild(wrap);
+  });
+}
+
+function buildTransGrid(dim=true){
+  const TRANS=[]; for(let c=0;c<C;c++){ TRANS[c]=[]; for(let r=0;r<R;r++) TRANS[c].push(DATA[r][c]); }
+  buildColHdrs('transColHdrs',R);
+  const cont=document.getElementById('transGrid'); cont.innerHTML='';
+  TRANS.forEach((row,r)=>{
+    const wrap=document.createElement('div'); wrap.className='grid-row-wrap';
+    const lbl=document.createElement('div'); lbl.className='row-lbl'; lbl.style.width=LW+'px'; lbl.textContent='row '+r; wrap.appendChild(lbl);
+    row.forEach((v,c)=>{
+      const cell=document.createElement('div'); cell.className=`cell ${dim?'c-dim':'c-purple'}`; cell.id=`tg${r}${c}`;
+      cell.style.cssText=`width:${CW}px;height:${CH}px;`; cell.textContent=v; wrap.appendChild(cell);
+    });
+    cont.appendChild(wrap);
+  });
+}
+
+function getOrig(r,c){ return document.getElementById(`og${r}${c}`); }
+function getTrans(r,c){ return document.getElementById(`tg${r}${c}`); }
+
+function clrHL(secId){ document.querySelectorAll(`#${secId} .codeline`).forEach(e=>e.classList.remove('hl')); }
+function hlLine(id){ const e=document.getElementById(id); if(e) e.classList.add('hl'); }
+function showEl(id){ const e=document.getElementById(id); if(e) e.style.opacity='1'; }
+function activeSection(id){ document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function setPill(id,cls,txt){ const p=document.getElementById(id); if(!p) return; p.className=`scan-pill ${cls}`; p.style.opacity='1'; p.textContent=txt; }
+function hidePill(id){ const p=document.getElementById(id); if(p) p.style.opacity='0'; }
+
+let STEPS=[], current=-1, playing=false, playTimer=null, built={};
+
+function buildSteps(){
+  const TRANS=[]; for(let c=0;c<C;c++){ TRANS[c]=[]; for(let r=0;r<R;r++) TRANS[c].push(DATA[r][c]); }
+  STEPS=[
+    {s:'sec1', t:'build',  info:`a has shape (${R},${C}) — ${R} rows and ${C} columns. Press Step to see the transpose.`},
+    // Sec 2
+    {s:'sec2', t:'sec',    info:`a.T transposes the array — rows become columns, columns become rows.`},
+    {s:'sec2', t:'cb',     id:'cb2', line:'cl2a', info:'Transpose view: no data is copied — the shape is simply flipped.'},
+    {s:'sec2', t:'showArrow', line:'cl2b', info:`a.T — shape (${R},${C}) becomes (${C},${R}). The shape tuple is reversed.`},
+    // scan row by row: highlight orig row → reveal trans col
+    ...Array.from({length:R},(_,origRow)=>({
+      s:'sec2', t:'scanRow', origRow, line:'cl2b',
+      info:`Row ${origRow} of a: [${DATA[origRow].join(', ')}] → becomes Column ${origRow} of t (reading down).`
+    })),
+    {s:'sec2', t:'scanDone', line:'cl2c', info:`All ${R} rows of a are now ${R} columns of t. Shape: (${R},${C}) → (${C},${R}).`},
+    {s:'sec2', t:'badges',   info:`a.shape=(${R},${C}) and t.shape=(${C},${R}) — the numbers just swapped!`},
+    // Sec 3
+    {s:'sec3', t:'sec',    info:'Step 3: The index rule — a[r][c] = t[c][r]. Same data, different index.'},
+    {s:'sec3', t:'cb',     id:'cb3', line:'cl3a', info:'Every element is accessible from both arrays — just with swapped indices.'},
+    {s:'sec3', t:'line',   line:'cl3b', info:`a[${Math.min(1,R-1)}][${Math.min(2,C-1)}] = ${DATA[Math.min(1,R-1)][Math.min(2,C-1)]} — original index.`},
+    {s:'sec3', t:'line',   line:'cl3c', info:`t[${Math.min(2,C-1)}][${Math.min(1,R-1)}] = same value — row and col indices swapped.`},
+    {s:'sec3', t:'rcard',  id:'rc3a', info:'Row index becomes col index and vice versa — the rule is: a[r][c] = t[c][r].'},
+    {s:'sec3', t:'line',   line:'cl3d', info:`Shape flips: (${R},${C}) → (${C},${R}). The tuple elements simply swap positions.`},
+    {s:'sec3', t:'rcard',  id:'rc3b', info:'No data is copied — transpose is a view. Instant, regardless of array size.'},
+  ];
+}
+
+function applyStep(s){
+  setPct(s);
+  const step=STEPS[s];
+  if(step.line){ clrHL(step.s); hlLine(step.line); }
+
+  if(step.t==='build'){
+    readData(); updateDynamic(); activeSection('sec1'); setInfo(step.info); setPhase('Step 1'); return;
+  }
+
+  if(step.t==='sec'){
+    showEl(step.s); activeSection(step.s);
+    if(!built[step.s]){
+      if(step.s==='sec2'){ buildOrigGrid(); buildTransGrid(true); }
+      built[step.s]=true;
+    }
+    setInfo(step.info); setPhase('Step '+step.s.replace('sec','')); return;
+  }
+
+  if(step.t==='cb'){ showEl(step.id); setInfo(step.info); return; }
+  if(step.t==='line'){ setInfo(step.info); return; }
+  if(step.t==='rcard'){ document.getElementById(step.id).classList.add('show'); setInfo(step.info); return; }
+
+  if(step.t==='showArrow'){
+    showEl('arrowMid'); setInfo(step.info); return;
+  }
+
+  if(step.t==='scanRow'){
+    const origRow=step.origRow;
+    // Highlight orig row yellow, previous rows back to blue
+    for(let r=0;r<R;r++) for(let c=0;c<C;c++){
+      const e=getOrig(r,c); if(!e) return;
+      e.className=`cell ${r===origRow?'c-scan-b':'c-blue'}`;
+    }
+    // Reveal trans col = origRow, keep previous purple
+    const TRANS=[]; for(let c=0;c<C;c++){ TRANS[c]=[]; for(let r=0;r<R;r++) TRANS[c].push(DATA[r][c]); }
+    for(let tr=0;tr<C;tr++) for(let tc=0;tc<R;tc++){
+      const e=getTrans(tr,tc); if(!e) continue;
+      if(tc<origRow) e.className='cell c-purple';
+      else if(tc===origRow) e.className='cell c-scan-p';
+      else e.className='cell c-dim';
+    }
+    setPill('pill2','sp-hl',`Row ${origRow} of a [${DATA[origRow].join(', ')}] → Column ${origRow} of t`);
+    setInfo(step.info); return;
+  }
+
+  if(step.t==='scanDone'){
+    for(let r=0;r<R;r++) for(let c=0;c<C;c++){ const e=getOrig(r,c); if(e) e.className='cell c-blue'; }
+    for(let tr=0;tr<C;tr++) for(let tc=0;tc<R;tc++){ const e=getTrans(tr,tc); if(e) e.className='cell c-purple'; }
+    hidePill('pill2'); setInfo(step.info); return;
+  }
+
+  if(step.t==='badges'){ showEl('sb1'); showEl('sb2'); setInfo(step.info); return; }
+}
+
+function setPct(s){ document.getElementById('progressFill').style.width=Math.round(((s+1)/STEPS.length)*100)+'%'; }
+function setInfo(t){ document.getElementById('stepInfo').textContent=t; }
+function setPhase(t){ document.getElementById('phaseLabel').textContent=t; }
+function getSpeed(){ return parseInt(document.getElementById('speedSel').value); }
+
+function stepForward(){
+  if(STEPS.length===0){ readData(); buildSteps(); }
+  if(current>=STEPS.length-1) return;
+  current++; applyStep(current);
+  document.getElementById('stepBtn').disabled=current>=STEPS.length-1;
+}
+function startPlay(){
+  if(STEPS.length===0||current>=STEPS.length-1){ hardReset(); }
+  if(STEPS.length===0){ readData(); buildSteps(); }
+  playing=true; document.getElementById('playBtn').textContent='⏸ Pause';
+  document.getElementById('stepBtn').disabled=true; tick();
+}
+function tick(){ if(!playing) return; if(current>=STEPS.length-1){ stopPlay(); return; } stepForward(); playTimer=setTimeout(tick,getSpeed()); }
+function stopPlay(){ playing=false; clearTimeout(playTimer); document.getElementById('playBtn').textContent='▶ Play'; document.getElementById('stepBtn').disabled=current>=STEPS.length-1; }
+
+function hardReset(){
+  stopPlay(); current=-1; built={}; STEPS=[];
+  ['sec2','sec3'].forEach(id=>{ const e=document.getElementById(id); if(e){e.style.opacity='0';e.classList.remove('active');} });
+  document.getElementById('sec1').classList.remove('active');
+  ['cb2','cb3','arrowMid','sb1','sb2'].forEach(id=>{ const e=document.getElementById(id); if(e) e.style.opacity='0'; });
+  ['rc3a','rc3b'].forEach(id=>{ const e=document.getElementById(id); if(e) e.classList.remove('show'); });
+  const p=document.getElementById('pill2'); if(p){p.style.opacity='0';p.textContent='';}
+  ['origGrid','origColHdrs','transGrid','transColHdrs'].forEach(id=>{ const e=document.getElementById(id); if(e) e.innerHTML=''; });
+  document.querySelectorAll('.codeline').forEach(e=>e.classList.remove('hl'));
+  document.getElementById('progressFill').style.width='0%';
+  document.getElementById('phaseLabel').textContent='';
+  document.getElementById('stepInfo').textContent='Edit the array below, then press Play.';
+  document.getElementById('stepBtn').disabled=false;
+  document.getElementById('playBtn').textContent='▶ Play';
+}
+
+document.getElementById('playBtn').addEventListener('click',()=>{ if(playing) stopPlay(); else startPlay(); });
+document.getElementById('stepBtn').addEventListener('click',stepForward);
+document.getElementById('resetBtn').addEventListener('click',hardReset);
+hardReset();
+</script>
