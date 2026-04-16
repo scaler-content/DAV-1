@@ -1,0 +1,398 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: sans-serif; background: #fff; padding: 1.5rem; }
+
+  .btn-row { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+  button { font-size: 13px; padding: 7px 18px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #222; cursor: pointer; }
+  button:hover { background: #f0f0f0; }
+  button.primary { background: #1E8449; color: #fff; border-color: #1E8449; }
+  button.primary:hover { background: #145A32; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  select { font-size: 13px; padding: 5px 10px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #222; }
+
+  .progress-bar { height: 4px; background: #D5F5E3; border-radius: 2px; margin-bottom: 1rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: #1E8449; border-radius: 2px; transition: width 0.3s; }
+
+  .step-info { font-size: 13px; color: #145A32; background: #EAFAF1; border: 1px solid #A9DFBF; border-radius: 8px; padding: 10px 16px; margin-bottom: 1.25rem; min-height: 40px; text-align: center; transition: all 0.3s; line-height: 1.5; }
+
+  /* Section cards */
+  .section { border: 0.5px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; opacity: 0; transition: opacity 0.5s; }
+  .section.active { border-color: #1E8449; box-shadow: 0 0 0 3px #EAFAF1; }
+  .sec-title { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
+  .sec-title span { color: #1E8449; }
+
+  /* Code */
+  .code-block { background: #1a1a2e; border-radius: 8px; padding: 10px 14px; font-family: monospace; font-size: 13px; color: #2ecc71; margin-bottom: 10px; line-height: 1.7; }
+  .code-block .cm { color: #7f8c8d; }
+  .code-block .hl { color: #F9E79F; }
+
+  /* 1D grid */
+  .row-1d { display: flex; gap: 6px; flex-wrap: wrap; }
+  .cell-1d { width: 52px; height: 52px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #EAFAF1; border: 2px solid #A9DFBF; color: #145A32; font-size: 16px; font-weight: 600; opacity: 0; transform: scale(0.7); transition: opacity 0.35s, transform 0.35s, background 0.3s, border-color 0.3s; }
+  .cell-1d .idx { font-size: 9px; color: #7DCEA0; margin-top: 2px; }
+  .cell-1d.show { opacity: 1; transform: scale(1); }
+  .cell-1d.scan { background: #1E8449; color: #fff; border-color: #145A32; transform: scale(1.12); }
+  .cell-1d.scan .idx { color: #A9DFBF; }
+
+  /* 2D grid */
+  .grid-2d { display: flex; flex-direction: column; gap: 6px; }
+  .col-hdrs { display: flex; gap: 6px; margin-left: 64px; margin-bottom: 2px; }
+  .col-hdr { width: 52px; text-align: center; font-size: 11px; font-weight: 600; color: #1E8449; opacity: 0; transition: opacity 0.4s; }
+  .row-wrap { display: flex; align-items: center; gap: 6px; }
+  .row-lbl { width: 56px; text-align: right; font-size: 12px; font-weight: 500; color: #1E8449; opacity: 0; transition: opacity 0.4s; flex-shrink: 0; }
+  .cell-2d { width: 52px; height: 52px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #EAFAF1; border: 2px solid #A9DFBF; color: #145A32; font-size: 16px; font-weight: 600; opacity: 0; transform: scale(0.7); transition: opacity 0.35s, transform 0.35s, background 0.3s, border-color 0.3s; }
+  .cell-2d .idx2 { font-size: 9px; color: #7DCEA0; margin-top: 2px; }
+  .cell-2d.show { opacity: 1; transform: scale(1); }
+  .cell-2d.scan-row { background: #A9DFBF; border-color: #1E8449; transform: scale(1.05); }
+  .cell-2d.scan-cell { background: #1E8449; color: #fff; border-color: #145A32; transform: scale(1.12); }
+  .cell-2d.scan-cell .idx2 { color: #A9DFBF; }
+  .cell-2d.dim-col { background: #EBF5FB; border-color: #378ADD; color: #0C447C; }
+  .cell-2d.dim-col .idx2 { color: #85B7EB; }
+
+  /* Axis arrows */
+  .axis-wrap { display: flex; align-items: center; gap: 8px; margin-top: 8px; margin-left: 64px; opacity: 0; transition: opacity 0.5s; }
+  .axis-line { flex: 1; height: 3px; background: linear-gradient(to right, #A9DFBF, #1E8449); border-radius: 2px; }
+  .axis-lbl { font-size: 11px; color: #1E8449; font-weight: 600; }
+  .axis0-wrap { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; margin-top: 6px; margin-left: 8px; opacity: 0; transition: opacity 0.5s; }
+  .axis0-lbl { font-size: 11px; color: #1E8449; font-weight: 600; }
+
+  /* Shape reveal */
+  .shape-reveal { display: flex; align-items: stretch; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+  .shape-box { flex: 1; min-width: 120px; border-radius: 10px; padding: 12px; text-align: center; opacity: 0; transition: opacity 0.5s, transform 0.4s; transform: translateY(10px); }
+  .shape-box.show { opacity: 1; transform: translateY(0); }
+  .shape-box.s-ndim { background: #EAFAF1; border: 1.5px solid #A9DFBF; }
+  .shape-box.s-shape { background: #EBF5FB; border: 1.5px solid #85B7EB; }
+  .shape-box.s-rows  { background: #FAEEDA; border: 1.5px solid #EF9F27; }
+  .shape-box.s-cols  { background: #FCEBEB; border: 1.5px solid #E24B4A; }
+  .shape-box .sb-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; color: #888; }
+  .shape-box .sb-val   { font-size: 24px; font-weight: 600; }
+  .shape-box .sb-desc  { font-size: 11px; margin-top: 4px; color: #888; }
+  .s-ndim  .sb-val { color: #145A32; }
+  .s-shape .sb-val { color: #0C447C; letter-spacing: 3px; }
+  .s-rows  .sb-val { color: #633806; }
+  .s-cols  .sb-val { color: #7B241C; }
+
+  /* Comparison table */
+  .cmp-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .cmp-table th { padding: 7px 10px; text-align: left; background: #f5f5f5; color: #555; font-weight: 600; border-bottom: 1px solid #e0e0e0; }
+  .cmp-table td { padding: 8px 10px; border-bottom: 0.5px solid #f0f0f0; }
+  .cmp-row { opacity: 0; transition: opacity 0.4s; }
+  .cmp-row.show { opacity: 1; }
+  .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+  .tag-1d { background: #EAFAF1; color: #145A32; }
+  .tag-2d { background: #EBF5FB; color: #0C447C; }
+</style>
+
+<h2 style="font-size:17px;font-weight:500;color:#111;margin-bottom:1rem;">NumPy shape & dimensions — simulation</h2>
+
+<div class="btn-row">
+  <button class="primary" id="playBtn">▶ Play</button>
+  <button id="stepBtn">Step →</button>
+  <button id="resetBtn">↺ Reset</button>
+  <span style="font-size:12px;color:#888;">Speed:</span>
+  <select id="speedSel">
+    <option value="900">Slow</option>
+    <option value="500" selected>Normal</option>
+    <option value="180">Fast</option>
+  </select>
+  <span id="phaseLabel" style="font-size:12px;color:#aaa;margin-left:6px;"></span>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+<div class="step-info" id="stepInfo">Press Play or Step to begin.</div>
+
+<!-- PART 1: What is ndim? -->
+<div class="section" id="sec1">
+  <div class="sec-title">Part 1 — <span>what is ndim?</span></div>
+  <div class="code-block" id="code1a" style="opacity:0;transition:opacity 0.5s;"><span class="cm"># 1D — one row of marks</span>
+marks = np.array([78, 45, 91])
+marks.<span class="hl">ndim</span>  →  <span class="hl">1</span></div>
+  <div class="row-1d" id="row1d" style="margin-bottom:10px;"></div>
+  <div id="ndim1label" style="opacity:0;transition:opacity 0.5s;font-size:13px;color:#145A32;margin-bottom:10px;">
+    → One straight line of values. ndim = <b>1</b> because data flows in <b>one direction only</b>.
+  </div>
+  <div class="code-block" id="code1b" style="opacity:0;transition:opacity 0.5s;"><span class="cm"># 2D — rows × columns (like a table)</span>
+results = np.array([[78,92,88],[45,67,34],[91,56,72]])
+results.<span class="hl">ndim</span>  →  <span class="hl">2</span></div>
+  <div id="ndim2label" style="opacity:0;transition:opacity 0.5s;font-size:13px;color:#0C447C;">
+    → A grid of values. ndim = <b>2</b> because data flows in <b>two directions</b>: rows & columns.
+  </div>
+</div>
+
+<!-- PART 2: Building the 2D grid -->
+<div class="section" id="sec2">
+  <div class="sec-title">Part 2 — <span>building the 2D array row by row</span></div>
+  <div class="col-hdrs" id="colHdrs">
+    <div class="col-hdr" id="ch0">Maths</div>
+    <div class="col-hdr" id="ch1">Science</div>
+    <div class="col-hdr" id="ch2">English</div>
+  </div>
+  <div class="grid-2d" id="grid2d"></div>
+  <div class="axis-wrap" id="axis1wrap">
+    <div class="axis-line"></div>
+    <div class="axis-lbl">axis 1 → columns</div>
+  </div>
+</div>
+
+<!-- PART 3: Shape breakdown -->
+<div class="section" id="sec3">
+  <div class="sec-title">Part 3 — <span>what does .shape tell us?</span></div>
+  <div style="font-family:monospace;font-size:14px;color:#555;margin-bottom:10px;">results.shape &nbsp;→ &nbsp;<span style="color:#0C447C;font-weight:600;">(3, 3)</span></div>
+  <div class="shape-reveal" id="shapeReveal">
+    <div class="shape-box s-ndim" id="sb0"><div class="sb-label">ndim</div><div class="sb-val">2</div><div class="sb-desc">dimensions</div></div>
+    <div class="shape-box s-shape" id="sb1"><div class="sb-label">shape</div><div class="sb-val">(3, 3)</div><div class="sb-desc">tuple output</div></div>
+    <div class="shape-box s-rows"  id="sb2"><div class="sb-label">shape[0]</div><div class="sb-val">3</div><div class="sb-desc">rows (sections)</div></div>
+    <div class="shape-box s-cols"  id="sb3"><div class="sb-label">shape[1]</div><div class="sb-val">3</div><div class="sb-desc">cols (subjects)</div></div>
+  </div>
+</div>
+
+<!-- PART 4: Row vs Column scan -->
+<div class="section" id="sec4">
+  <div class="sec-title">Part 4 — <span>axis 0 = rows, axis 1 = columns</span></div>
+  <div id="scanGrid2" style="display:flex;flex-direction:column;gap:6px;"></div>
+  <div id="scanInfo" style="font-size:13px;color:#555;margin-top:10px;padding:8px 12px;background:#f9f9f9;border-radius:8px;min-height:28px;opacity:0;transition:opacity 0.4s;"></div>
+</div>
+
+<!-- PART 5: 1D vs 2D comparison -->
+<div class="section" id="sec5">
+  <div class="sec-title">Part 5 — <span>1D vs 2D at a glance</span></div>
+  <table class="cmp-table">
+    <thead><tr><th>Property</th><th><span class="tag tag-1d">1D array</span></th><th><span class="tag tag-2d">2D array</span></th></tr></thead>
+    <tbody id="cmpBody"></tbody>
+  </table>
+</div>
+
+<script>
+const DATA2D = [[78,92,88],[45,67,34],[91,56,72]];
+const ROWS = ['Sec A','Sec B','Sec C'];
+const COLS = ['Maths','Science','English'];
+const DATA1D = [78, 45, 91];
+
+const CMP = [
+  ['ndim','1','2'],
+  ['shape','(3,)','(3, 3)'],
+  ['shape[0]','3 — elements','3 — rows'],
+  ['shape[1]','does not exist','3 — columns'],
+  ['use case','single list of values','table with rows & cols'],
+  ['indexing','arr[i]','arr[i, j]'],
+];
+
+let cells2d=[], scanCells=[];
+let current=-1, playing=false, playTimer=null;
+
+// Step map
+const STEPS = [
+  // sec1
+  {t:'sec1open'},
+  {t:'code1a'},
+  {t:'cells1d', ci:0},{t:'cells1d',ci:1},{t:'cells1d',ci:2},
+  {t:'ndim1label'},
+  {t:'code1b'},
+  {t:'ndim2label'},
+  // sec2
+  {t:'sec2open'},
+  {t:'colhdr',ci:0},{t:'colhdr',ci:1},{t:'colhdr',ci:2},
+  {t:'row2d',r:0},{t:'row2d',r:1},{t:'row2d',r:2},
+  {t:'axis1'},
+  // sec3
+  {t:'sec3open'},
+  {t:'shapebox',i:0},{t:'shapebox',i:1},{t:'shapebox',i:2},{t:'shapebox',i:3},
+  // sec4
+  {t:'sec4open'},
+  {t:'scanrow',r:0},{t:'scanrow',r:1},{t:'scanrow',r:2},
+  {t:'scancol',c:0},{t:'scancol',c:1},{t:'scancol',c:2},
+  // sec5
+  {t:'sec5open'},
+  {t:'cmprow',i:0},{t:'cmprow',i:1},{t:'cmprow',i:2},{t:'cmprow',i:3},{t:'cmprow',i:4},{t:'cmprow',i:5},
+];
+
+const INFOS = {
+  sec1open:  'Part 1: ndim tells you how many directions your data is organised in.',
+  code1a:    '1D array — marks for one student stored in a single line.',
+  'cells1d0':'Value 78 added at index [0].',
+  'cells1d1':'Value 45 added at index [1].',
+  'cells1d2':'Value 91 added at index [2]. One straight line → ndim = 1.',
+  ndim1label:'1D means data has only one axis — like a single row of boxes.',
+  code1b:    '2D array — same data now organised as a table: rows (sections) × columns (subjects).',
+  ndim2label:'2D means data flows in two directions: down (rows) and across (columns).',
+  sec2open:  'Part 2: Building the 2D array. Each row is one section, each column is one subject.',
+  'colhdr0': 'Column 0: Maths — this axis runs left to right (axis 1).',
+  'colhdr1': 'Column 1: Science.',
+  'colhdr2': 'Column 2: English. Three subjects = 3 columns.',
+  'row2d0':  'Row 0: Sec A — Maths=78, Science=92, English=88.',
+  'row2d1':  'Row 1: Sec B — Maths=45, Science=67, English=34.',
+  'row2d2':  'Row 2: Sec C — Maths=91, Science=56, English=72. Three sections = 3 rows.',
+  axis1:     'Axis 1 runs across (left → right). Axis 0 runs down (top → bottom).',
+  sec3open:  'Part 3: .shape returns a tuple — (rows, columns). Let\'s unpack each number.',
+  'shapebox0':'ndim = 2 — confirmed: this array lives in 2 dimensions.',
+  'shapebox1':'shape = (3, 3) — a tuple with two numbers, one per axis.',
+  'shapebox2':'shape[0] = 3 — there are 3 rows (one per section).',
+  'shapebox3':'shape[1] = 3 — there are 3 columns (one per subject). Always: shape = (rows, cols).',
+  sec4open:  'Part 4: axis 0 scans down rows, axis 1 scans across columns.',
+  'scanrow0':'Axis 0 → Row 0 (Sec A): [78, 92, 88] — all subjects for one section.',
+  'scanrow1':'Axis 0 → Row 1 (Sec B): [45, 67, 34].',
+  'scanrow2':'Axis 0 → Row 2 (Sec C): [91, 56, 72]. Each row = one complete record.',
+  'scancol0':'Axis 1 → Column 0 (Maths): [78, 45, 91] — Maths scores across all sections.',
+  'scancol1':'Axis 1 → Column 1 (Science): [92, 67, 56].',
+  'scancol2':'Axis 1 → Column 2 (English): [88, 34, 72]. Each column = one feature across all records.',
+  sec5open:  'Part 5: Side-by-side comparison of 1D vs 2D — spot the differences.',
+};
+
+function getSpeed(){ return parseInt(document.getElementById('speedSel').value); }
+function setInfo(t){ document.getElementById('stepInfo').textContent=t; }
+function setPhase(t){ document.getElementById('phaseLabel').textContent=t; }
+function setPct(s){ document.getElementById('progressFill').style.width=Math.round(((s+1)/STEPS.length)*100)+'%'; }
+function showEl(el){ if(typeof el==='string') document.getElementById(el).style.opacity='1'; else el.style.opacity='1'; }
+function activeSection(id){ document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+function build1DCells(){
+  const c=document.getElementById('row1d'); c.innerHTML='';
+  DATA1D.forEach((v,i)=>{
+    const el=document.createElement('div'); el.className='cell-1d'; el.id='c1d'+i;
+    el.innerHTML=`${v}<div class="idx">[${i}]</div>`; c.appendChild(el);
+  });
+}
+
+function buildGrid2D(){
+  const g=document.getElementById('grid2d'); g.innerHTML=''; cells2d=[];
+  ROWS.forEach((rl,r)=>{
+    const wrap=document.createElement('div'); wrap.className='row-wrap';
+    const lbl=document.createElement('div'); lbl.className='row-lbl'; lbl.id='rl'+r; lbl.textContent=rl;
+    wrap.appendChild(lbl); cells2d[r]=[];
+    DATA2D[r].forEach((v,c)=>{
+      const cell=document.createElement('div'); cell.className='cell-2d'; cell.id=`c2d${r}${c}`;
+      cell.innerHTML=`${v}<div class="idx2">[${r},${c}]</div>`;
+      wrap.appendChild(cell); cells2d[r][c]=cell;
+    });
+    g.appendChild(wrap);
+  });
+}
+
+function buildScanGrid(){
+  const g=document.getElementById('scanGrid2'); g.innerHTML=''; scanCells=[];
+  // col headers
+  const hdr=document.createElement('div'); hdr.style.cssText='display:flex;gap:6px;margin-left:64px;margin-bottom:2px;';
+  COLS.forEach(c=>{ const h=document.createElement('div'); h.style.cssText='width:52px;text-align:center;font-size:11px;font-weight:600;color:#1E8449;'; h.textContent=c; hdr.appendChild(h); });
+  g.appendChild(hdr);
+  ROWS.forEach((rl,r)=>{
+    const wrap=document.createElement('div'); wrap.className='row-wrap';
+    const lbl=document.createElement('div'); lbl.className='row-lbl'; lbl.style.opacity='1'; lbl.textContent=rl;
+    wrap.appendChild(lbl); scanCells[r]=[];
+    DATA2D[r].forEach((v,c)=>{
+      const cell=document.createElement('div'); cell.className='cell-2d show'; cell.id=`sc${r}${c}`;
+      cell.innerHTML=`${v}<div class="idx2">[${r},${c}]</div>`;
+      wrap.appendChild(cell); scanCells[r][c]=cell;
+    });
+    g.appendChild(wrap);
+  });
+}
+
+function clearScan(){
+  if(!scanCells.length) return;
+  scanCells.forEach(row=>row.forEach(c=>{ c.className='cell-2d show'; }));
+}
+
+function applyStep(s){
+  setPct(s);
+  const step=STEPS[s];
+
+  if(step.t==='sec1open'){ showEl('sec1'); activeSection('sec1'); build1DCells(); setInfo(INFOS.sec1open); setPhase('Part 1 — ndim'); return; }
+  if(step.t==='code1a'){ showEl('code1a'); setInfo(INFOS.code1a); return; }
+  if(step.t==='cells1d'){
+    const el=document.getElementById('c1d'+step.ci);
+    el.classList.add('show');
+    setTimeout(()=>el.classList.add('scan'),100);
+    setTimeout(()=>el.classList.remove('scan'),600);
+    setInfo(INFOS['cells1d'+step.ci]); return;
+  }
+  if(step.t==='ndim1label'){ showEl('ndim1label'); setInfo(INFOS.ndim1label); return; }
+  if(step.t==='code1b'){ showEl('code1b'); setInfo(INFOS.code1b); return; }
+  if(step.t==='ndim2label'){ showEl('ndim2label'); setInfo(INFOS.ndim2label); return; }
+
+  if(step.t==='sec2open'){ showEl('sec2'); activeSection('sec2'); buildGrid2D(); setInfo(INFOS.sec2open); setPhase('Part 2 — building'); return; }
+  if(step.t==='colhdr'){ document.getElementById('ch'+step.ci).style.opacity='1'; setInfo(INFOS['colhdr'+step.ci]); return; }
+  if(step.t==='row2d'){
+    document.getElementById('rl'+step.r).style.opacity='1';
+    cells2d[step.r].forEach((c,ci)=>{ setTimeout(()=>c.classList.add('show'),ci*100); });
+    setInfo(INFOS['row2d'+step.r]); setPhase(`Row ${step.r} — ${ROWS[step.r]}`); return;
+  }
+  if(step.t==='axis1'){ showEl('axis1wrap'); setInfo(INFOS.axis1); return; }
+
+  if(step.t==='sec3open'){ showEl('sec3'); activeSection('sec3'); setInfo(INFOS.sec3open); setPhase('Part 3 — shape'); return; }
+  if(step.t==='shapebox'){
+    const el=document.getElementById('sb'+step.i);
+    el.classList.add('show');
+    setInfo(INFOS['shapebox'+step.i]); return;
+  }
+
+  if(step.t==='sec4open'){ showEl('sec4'); activeSection('sec4'); buildScanGrid(); setInfo(INFOS.sec4open); setPhase('Part 4 — axes'); return; }
+  if(step.t==='scanrow'){
+    clearScan();
+    scanCells[step.r].forEach(c=>c.classList.add('scan-row'));
+    const si=document.getElementById('scanInfo'); si.style.opacity='1';
+    si.innerHTML=`<b style="color:#1E8449;">axis 0 ↓ row ${step.r} (${ROWS[step.r]}):</b> [${DATA2D[step.r].join(', ')}]`;
+    setInfo(INFOS['scanrow'+step.r]); setPhase(`Axis 0 — row scan`); return;
+  }
+  if(step.t==='scancol'){
+    clearScan();
+    scanCells.forEach(row=>row[step.c].classList.add('dim-col'));
+    const si=document.getElementById('scanInfo'); si.style.opacity='1';
+    const vals=DATA2D.map(r=>r[step.c]);
+    si.innerHTML=`<b style="color:#185FA5;">axis 1 → col ${step.c} (${COLS[step.c]}):</b> [${vals.join(', ')}]`;
+    setInfo(INFOS['scancol'+step.c]); setPhase(`Axis 1 — col scan`); return;
+  }
+
+  if(step.t==='sec5open'){ showEl('sec5'); activeSection('sec5'); setInfo(INFOS.sec5open); setPhase('Part 5 — comparison'); return; }
+  if(step.t==='cmprow'){
+    const row=CMP[step.i];
+    const tbody=document.getElementById('cmpBody');
+    const tr=document.createElement('tr'); tr.className='cmp-row'; tr.id='cr'+step.i;
+    tr.innerHTML=`<td style="font-weight:500;color:#333;">${row[0]}</td><td style="font-family:monospace;color:#145A32;">${row[1]}</td><td style="font-family:monospace;color:#0C447C;">${row[2]}</td>`;
+    tbody.appendChild(tr);
+    requestAnimationFrame(()=>tr.classList.add('show'));
+    setInfo(`${row[0]}: 1D → ${row[1]}  |  2D → ${row[2]}`); return;
+  }
+}
+
+function stepForward(){
+  if(current>=STEPS.length-1) return;
+  current++; applyStep(current);
+  document.getElementById('stepBtn').disabled=current>=STEPS.length-1;
+}
+function startPlay(){
+  if(current>=STEPS.length-1) reset();
+  playing=true; document.getElementById('playBtn').textContent='⏸ Pause';
+  document.getElementById('stepBtn').disabled=true; tick();
+}
+function tick(){
+  if(!playing) return;
+  if(current>=STEPS.length-1){ stopPlay(); return; }
+  stepForward(); playTimer=setTimeout(tick,getSpeed());
+}
+function stopPlay(){
+  playing=false; clearTimeout(playTimer);
+  document.getElementById('playBtn').textContent='▶ Play';
+  document.getElementById('stepBtn').disabled=current>=STEPS.length-1;
+}
+function reset(){
+  stopPlay(); current=-1;
+  ['sec1','sec2','sec3','sec4','sec5'].forEach(id=>{ document.getElementById(id).style.opacity='0'; document.getElementById(id).classList.remove('active'); });
+  ['code1a','code1b','ndim1label','ndim2label','axis1wrap'].forEach(id=>document.getElementById(id).style.opacity='0');
+  ['ch0','ch1','ch2'].forEach(id=>document.getElementById(id).style.opacity='0');
+  ['sb0','sb1','sb2','sb3'].forEach(id=>{ document.getElementById(id).classList.remove('show'); });
+  document.getElementById('cmpBody').innerHTML='';
+  document.getElementById('row1d').innerHTML='';
+  document.getElementById('grid2d').innerHTML='';
+  document.getElementById('scanGrid2').innerHTML='';
+  if(document.getElementById('scanInfo')) document.getElementById('scanInfo').style.opacity='0';
+  document.getElementById('progressFill').style.width='0%';
+  document.getElementById('phaseLabel').textContent='';
+  document.getElementById('stepInfo').textContent='Press Play or Step to begin.';
+  document.getElementById('stepBtn').disabled=false;
+  document.getElementById('playBtn').textContent='▶ Play';
+}
+
+document.getElementById('playBtn').addEventListener('click',()=>{ if(playing) stopPlay(); else startPlay(); });
+document.getElementById('stepBtn').addEventListener('click',stepForward);
+document.getElementById('resetBtn').addEventListener('click',reset);
+reset();
+</script>
