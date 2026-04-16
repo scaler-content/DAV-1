@@ -1,0 +1,310 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: sans-serif; background: #f4f4f4; padding: 1.5rem; }
+  h2 { font-size: 17px; font-weight: 500; color: #111; margin-bottom: 1.25rem; }
+
+  .btn-row { display: flex; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap; align-items: center; }
+  button { font-size: 13px; padding: 7px 18px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #222; cursor: pointer; }
+  button:hover { background: #f0f0f0; }
+  button.primary { background: #378ADD; color: #fff; border-color: #378ADD; }
+  button.primary:hover { background: #185FA5; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  select { font-size: 13px; padding: 5px 10px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #222; cursor: pointer; }
+
+  .progress-bar { height: 4px; background: #e0e0e0; border-radius: 2px; margin-bottom: 1.5rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: #378ADD; border-radius: 2px; transition: width 0.3s; }
+
+  .columns { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; }
+
+  .panel { border-radius: 12px; overflow: hidden; border: 1px solid #ddd; background: #fff; }
+  .panel-header { padding: 14px 16px; font-size: 15px; font-weight: 500; text-align: center; color: #fff; }
+  .panel-header.list-hdr  { background: #C0392B; }
+  .panel-header.numpy-hdr { background: #1E8449; }
+  .panel-body { padding: 1rem; }
+
+  .code-block { background: #1a1a2e; color: #2ecc71; font-family: monospace; font-size: 12px; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; }
+
+  .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: #888; margin-bottom: 8px; text-transform: uppercase; }
+
+  /* Scattered memory for list */
+  .scatter-box { position: relative; height: 190px; background: #fdf0ef; border: 2px dashed #E74C3C; border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+  .scatter-val { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 60px; transition: box-shadow 0.3s, transform 0.3s; }
+  .scatter-val .sv-box { width: 52px; height: 44px; border-radius: 8px; background: #E74C3C; color: #fff; font-size: 17px; font-weight: 500; display: flex; align-items: center; justify-content: center; }
+  .scatter-val .sv-addr { font-size: 9px; font-family: monospace; color: #922B21; background: #fad7d4; border-radius: 3px; padding: 1px 4px; white-space: nowrap; }
+  .scatter-val.cpu-visit { transform: scale(1.15); }
+  .scatter-val.cpu-visit .sv-box { box-shadow: 0 0 0 3px #F39C12; }
+  .scatter-val.cpu-done .sv-box { opacity: 0.45; }
+  .scatter-val.cpu-done .sv-addr { opacity: 0.45; }
+
+  .list-warn { font-size: 12px; color: #922B21; background: #FADBD8; border-left: 3px solid #E74C3C; border-radius: 0 6px 6px 0; padding: 7px 10px; margin-bottom: 8px; }
+  .list-note { font-size: 11px; color: #922B21; background: #fdf0ef; border: 1px solid #E74C3C; border-radius: 6px; padding: 6px 10px; }
+
+  /* Contiguous memory for numpy */
+  .numpy-block { background: #eafaf1; border: 2px solid #1E8449; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+  .numpy-block .block-label { font-size: 10px; color: #1E8449; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+  .numpy-cells { display: flex; gap: 6px; }
+  .numpy-cell { flex: 1; border-radius: 8px; background: #1E8449; color: #fff; padding: 8px 4px; text-align: center; border: 2px solid #1E8449; transition: background 0.3s, border-color 0.3s, transform 0.3s; }
+  .numpy-cell.cpu-visit { background: #F39C12; border-color: #D68910; transform: scale(1.1); }
+  .numpy-cell.cpu-done  { background: #7DCEA0; border-color: #1E8449; opacity: 0.6; }
+  .numpy-cell .val { font-size: 16px; font-weight: 500; }
+  .numpy-cell .idx { font-size: 10px; opacity: 0.8; margin-top: 2px; }
+
+  .sweep-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .sweep-line { flex: 1; height: 3px; background: #e0e0e0; border-radius: 2px; overflow: hidden; }
+  .sweep-fill { height: 100%; background: #1E8449; border-radius: 2px; transition: width 0.4s; }
+  .sweep-label { font-size: 11px; color: #888; white-space: nowrap; }
+  .sweep-fast { font-size: 11px; color: #1E8449; font-weight: 600; white-space: nowrap; }
+
+  /* Speed test */
+  .speed-box { background: #EBF5FB; border: 1.5px solid #378ADD; border-radius: 10px; padding: 12px; margin-top: 4px; }
+  .speed-title { font-size: 11px; font-weight: 600; color: #185FA5; text-transform: uppercase; letter-spacing: 0.06em; text-align: center; margin-bottom: 10px; }
+  .speed-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; border-radius: 6px; margin-bottom: 6px; font-size: 13px; }
+  .speed-row.list-speed  { background: #FADBD8; }
+  .speed-row.numpy-speed { background: #EAFAF1; }
+  .speed-val-list  { color: #C0392B; font-weight: 500; font-size: 15px; }
+  .speed-val-numpy { color: #1E8449; font-weight: 500; font-size: 15px; }
+  .faster-badge { background: #1a1a2e; color: #fff; border-radius: 8px; text-align: center; padding: 10px; font-size: 17px; font-weight: 500; margin-top: 6px; }
+
+  .info-pill { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 20px; margin-bottom: 8px; }
+  .info-pill.amber { background: #FEF9E7; color: #9A7D0A; border: 1px solid #F9E79F; }
+  .info-pill.green { background: #EAFAF1; color: #1E8449; border: 1px solid #A9DFBF; }
+
+  .step-info { font-size: 12px; color: #555; background: #f9f9f9; border-radius: 6px; padding: 6px 10px; margin-bottom: 10px; min-height: 28px; text-align: center; }
+</style>
+
+<h2>Python list vs NumPy array — memory & speed simulation</h2>
+
+<div class="btn-row">
+  <button class="primary" id="playBtn">▶ Play</button>
+  <button id="stepBtn">Step →</button>
+  <button id="resetBtn">↺ Reset</button>
+  <span style="font-size:12px;color:#888;">Speed:</span>
+  <select id="speedSel">
+    <option value="900">Slow</option>
+    <option value="450" selected>Normal</option>
+    <option value="180">Fast</option>
+  </select>
+  <span id="phaseLabel" style="font-size:12px;color:#aaa;margin-left:4px;"></span>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+<div class="step-info" id="stepInfo">Press Play or Step to start the simulation.</div>
+
+<div class="columns">
+
+  <!-- LEFT: Python List -->
+  <div class="panel">
+    <div class="panel-header list-hdr">🐍 Python List</div>
+    <div class="panel-body">
+      <div class="code-block">marks = [45, 78, 23, 92, 67]</div>
+      <div class="section-label">Each value lives in a different place in memory</div>
+      <div class="scatter-box" id="scatterBox">
+        <!-- values placed by JS -->
+      </div>
+      <div class="list-warn" id="listWarn" style="opacity:0;transition:opacity 0.5s;">
+        ⚠ To read all 5 values, CPU makes 5 separate trips across memory
+      </div>
+      <div class="list-note" id="listNote" style="opacity:0;transition:opacity 0.5s;">
+        📚 Like 5 textbooks on 5 different shelves — you must walk to each shelf one by one → SLOW
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: NumPy Array -->
+  <div class="panel">
+    <div class="panel-header numpy-hdr">⚡ NumPy Array</div>
+    <div class="panel-body">
+      <div class="code-block">marks = np.array([45, 78, 23, 92, 67])</div>
+      <div class="numpy-block">
+        <div class="block-label">✅ Contiguous memory block</div>
+        <div class="numpy-cells" id="numpyCells"></div>
+      </div>
+      <div class="sweep-row">
+        <div class="sweep-label">CPU reads ALL in one sweep</div>
+        <div class="sweep-line"><div class="sweep-fill" id="sweepFill" style="width:0%"></div></div>
+        <div class="sweep-fast" id="sweepFast" style="opacity:0;">FAST ⚡</div>
+      </div>
+      <div class="speed-box" id="speedBox" style="opacity:0;transition:opacity 0.6s;">
+        <div class="speed-title">⏱ Speed test — 1 million values</div>
+        <div class="speed-row list-speed">
+          <span style="font-family:monospace;color:#555;">Python List loop:</span>
+          <span class="speed-val-list">330 ms</span>
+        </div>
+        <div class="speed-row numpy-speed">
+          <span style="font-family:monospace;color:#555;">NumPy array:</span>
+          <span class="speed-val-numpy">907 μs</span>
+        </div>
+        <div class="faster-badge">363× FASTER</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const VALS = [45, 78, 23, 92, 67];
+const POSITIONS = [
+  { left: '14px',  top: '16px'  },
+  { left: '118px', top: '90px'  },
+  { left: '210px', top: '14px'  },
+  { left: '295px', top: '82px'  },
+  { left: '58px',  top: '108px' }
+];
+const ADDRESSES = ['📍 Mem: 1001', '📍 Mem: 4782', '📍 Mem: 1293', '📍 Mem: 8341', '📍 Mem: 2956'];
+
+let scatterEls = [], numpyEls = [];
+let currentStep = -1, playing = false, playTimer = null;
+
+const TOTAL_STEPS = 5 + 5 + 3; // 5 list scan + 5 numpy scan + 3 finish steps
+
+function getSpeed() { return parseInt(document.getElementById('speedSel').value); }
+
+function buildUI() {
+  // Scatter cells
+  const box = document.getElementById('scatterBox');
+  box.innerHTML = ''; scatterEls = [];
+  VALS.forEach((v, i) => {
+    const el = document.createElement('div');
+    el.className = 'scatter-val';
+    el.style.left = POSITIONS[i].left;
+    el.style.top  = POSITIONS[i].top;
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.4s, transform 0.3s';
+    el.innerHTML = `<div class="sv-box">${v}</div><div class="sv-addr">${ADDRESSES[i]}</div>`;
+    box.appendChild(el);
+    scatterEls.push(el);
+  });
+
+  // NumPy cells
+  const nc = document.getElementById('numpyCells');
+  nc.innerHTML = ''; numpyEls = [];
+  VALS.forEach((v, i) => {
+    const el = document.createElement('div');
+    el.className = 'numpy-cell';
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.4s, background 0.3s, border-color 0.3s, transform 0.3s';
+    el.innerHTML = `<div class="val">${v}</div><div class="idx">[${i}]</div>`;
+    nc.appendChild(el);
+    numpyEls.push(el);
+  });
+
+  document.getElementById('sweepFill').style.width = '0%';
+  document.getElementById('sweepFast').style.opacity = '0';
+  document.getElementById('speedBox').style.opacity = '0';
+  document.getElementById('listWarn').style.opacity = '0';
+  document.getElementById('listNote').style.opacity = '0';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('phaseLabel').textContent = '';
+  document.getElementById('stepInfo').textContent = 'Press Play or Step to start the simulation.';
+}
+
+function applyStep(s) {
+  const pct = Math.round((s / TOTAL_STEPS) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  // Step 0: reveal all values
+  if (s === 0) {
+    scatterEls.forEach(el => el.style.opacity = '1');
+    numpyEls.forEach(el => el.style.opacity = '1');
+    document.getElementById('stepInfo').textContent = 'Both structures hold the same 5 values — but store them very differently in memory.';
+    document.getElementById('phaseLabel').textContent = '';
+    return;
+  }
+
+  // Steps 1–5: CPU visits list values one by one
+  if (s >= 1 && s <= 5) {
+    const idx = s - 1;
+    document.getElementById('phaseLabel').textContent = `List: reading value ${s}/5`;
+    document.getElementById('stepInfo').textContent = `CPU travels to a random memory address to fetch value ${VALS[idx]} — trip ${s} of 5.`;
+    scatterEls.forEach((el, i) => {
+      el.className = 'scatter-val' + (i === idx ? ' cpu-visit' : i < idx ? ' cpu-done' : '');
+    });
+    return;
+  }
+
+  // After list scan complete
+  if (s === 5) {
+    document.getElementById('listWarn').style.opacity = '1';
+  }
+
+  // Steps 6–10: CPU sweeps numpy contiguously
+  if (s >= 6 && s <= 10) {
+    const idx = s - 6;
+    document.getElementById('phaseLabel').textContent = `NumPy: sweeping cell ${idx+1}/5`;
+    document.getElementById('stepInfo').textContent = `CPU reads value ${VALS[idx]} at address [${idx}] — all values are adjacent, no travel needed.`;
+    scatterEls.forEach(el => el.className = 'scatter-val cpu-done');
+    document.getElementById('listWarn').style.opacity = '1';
+    numpyEls.forEach((el, i) => {
+      el.className = 'numpy-cell' + (i === idx ? ' cpu-visit' : i < idx ? ' cpu-done' : '');
+    });
+    document.getElementById('sweepFill').style.width = ((idx + 1) / 5 * 100) + '%';
+    return;
+  }
+
+  // Step 11: sweep done, show FAST label
+  if (s === 11) {
+    numpyEls.forEach(el => el.className = 'numpy-cell');
+    document.getElementById('sweepFill').style.width = '100%';
+    document.getElementById('sweepFast').style.opacity = '1';
+    document.getElementById('listNote').style.opacity = '1';
+    document.getElementById('stepInfo').textContent = 'NumPy swept all 5 values in one pass. The list needed 5 separate memory trips.';
+    document.getElementById('phaseLabel').textContent = 'Sweep complete';
+    return;
+  }
+
+  // Step 12: show speed box
+  if (s === 12) {
+    document.getElementById('speedBox').style.opacity = '1';
+    document.getElementById('stepInfo').textContent = 'At 1 million values, the gap is enormous — NumPy is 363× faster than a Python list loop.';
+    document.getElementById('phaseLabel').textContent = 'Speed test revealed';
+    return;
+  }
+
+  // Step 13: done
+  if (s === 13) {
+    document.getElementById('stepInfo').textContent = '✅ Summary: Python lists scatter values in memory (slow). NumPy packs them together (fast). Same data — completely different performance.';
+    document.getElementById('phaseLabel').textContent = 'Done';
+  }
+}
+
+function stepForward() {
+  if (currentStep >= TOTAL_STEPS) return;
+  currentStep++;
+  applyStep(currentStep);
+  document.getElementById('stepBtn').disabled = currentStep >= TOTAL_STEPS;
+}
+
+function startPlay() {
+  if (currentStep >= TOTAL_STEPS) reset();
+  playing = true;
+  document.getElementById('playBtn').textContent = '⏸ Pause';
+  document.getElementById('stepBtn').disabled = true;
+  tick();
+}
+
+function tick() {
+  if (!playing) return;
+  if (currentStep >= TOTAL_STEPS) { stopPlay(); return; }
+  stepForward();
+  playTimer = setTimeout(tick, getSpeed());
+}
+
+function stopPlay() {
+  playing = false; clearTimeout(playTimer);
+  document.getElementById('playBtn').textContent = '▶ Play';
+  document.getElementById('stepBtn').disabled = currentStep >= TOTAL_STEPS;
+}
+
+function reset() {
+  stopPlay(); currentStep = -1;
+  buildUI();
+  document.getElementById('stepBtn').disabled = false;
+  document.getElementById('playBtn').textContent = '▶ Play';
+}
+
+document.getElementById('playBtn').addEventListener('click', () => { if (playing) stopPlay(); else startPlay(); });
+document.getElementById('stepBtn').addEventListener('click', stepForward);
+document.getElementById('resetBtn').addEventListener('click', reset);
+
+reset();
+</script>
